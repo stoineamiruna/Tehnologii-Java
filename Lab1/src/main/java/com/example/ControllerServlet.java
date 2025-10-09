@@ -16,6 +16,7 @@ public class ControllerServlet extends HttpServlet {
         String agent = request.getHeader("User-Agent");
         String langs = request.getHeader("Accept-Language");
 
+        //cer 3
         System.out.println("=== New Request ===");
         System.out.println("Method: " + method);
         System.out.println("IP: " + ip);
@@ -30,17 +31,16 @@ public class ControllerServlet extends HttpServlet {
         log("Languages: " + langs);
         log("Param: " + param);
 
-        // Cerinta 5: verificam daca clientul cere text simplu
+        // Cer 4
         String acceptHeader = request.getHeader("Accept");
         if (acceptHeader != null && acceptHeader.contains("text/plain")) {
-            // trimitem raspuns ca text
             response.setContentType("text/plain");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write("Received parameter: " + param);
-            return; // iesim din metoda, nu mai facem forward
+            return;
         }
 
-        // Cerintele 2-4: forward catre pagini HTML / redirect
+        //Cer 2
         if ("cat".equals(param)) {
             request.getRequestDispatcher("page1.html").forward(request, response);
         } else if ("dog".equals(param)) {
