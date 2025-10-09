@@ -1,0 +1,88 @@
+body {
+    font-family: 'Comic Sans MS', 'Poppins', sans-serif;
+    background-color: #f9f6ff;
+    color: #444;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin-top: 50px;
+}
+
+h1 {
+    color: #6a5acd;
+    font-size: 2em;
+    margin-bottom: 30px;
+}
+
+.animal-form {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    flex-wrap: wrap;
+}
+
+.animal-option {
+    background-color: #fff0f5;
+    border: 3px solid #dda0dd;
+    border-radius: 20px;
+    padding: 20px;
+    transition: 0.3s;
+    box-shadow: 0 0 10px rgba(221,160,221,0.4);
+}
+
+.animal-option:hover {
+    transform: scale(1.05);
+    background-color: #ffe4f2;
+}
+
+.animal-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 15px;
+    object-fit: cover;
+}
+
+.btn {
+    background-color: #ff69b4;
+    border: none;
+    color: white;
+    padding: 10px 25px;
+    font-size: 1.1em;
+    border-radius: 15px;
+    cursor: pointer;
+    margin-top: 30px;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background-color: #ff85c2;
+}
+
+/* Pagina Cat */
+.cat-page {
+    background-color: #fff0f5;
+}
+
+/* Pagina Dog */
+.dog-page {
+    background-color: #e0fff0;
+}
+
+.content {
+    padding-top: 40px;
+}
+
+.animal-big {
+    width: 300px;
+    border-radius: 20px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    margin: 20px 0;
+}
+
+p {
+    font-size: 1.2em;
+    color: #333;
+}
