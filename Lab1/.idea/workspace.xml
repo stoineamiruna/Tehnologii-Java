@@ -9,10 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a30c450b-d346-46c5-affd-7adffa45fa1d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../SecondApp_Lab1/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../SecondApp_Lab1/src/com/example/ServletClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SecondApp_Lab1/src/com/example/ServletClient.java" afterDir="false" />
-    </list>
+    <list default="true" id="a30c450b-d346-46c5-affd-7adffa45fa1d" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -51,7 +48,7 @@
     "Tomcat Server.Tomcat-9.executor": "Run",
     "git-widget-placeholder": "development",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Miru/Desktop/Tehnologii Java/SecondApp_Lab1",
+    "last_opened_file_path": "C:/Users/Miru/Desktop/Tehnologii Java/Lab2",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -168,6 +165,7 @@
       <workItem from="1759841384466" duration="5276000" />
       <workItem from="1759918916706" duration="4667000" />
       <workItem from="1759990113915" duration="1292000" />
+      <workItem from="1760384307268" duration="13000" />
     </task>
     <servers />
   </component>
