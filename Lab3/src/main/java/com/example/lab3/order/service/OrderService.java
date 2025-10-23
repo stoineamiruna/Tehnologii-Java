@@ -4,6 +4,7 @@ import com.example.lab3.order.event.LargeDiscountEvent;
 import com.example.lab3.order.model.Customer;
 import com.example.lab3.order.model.Order;
 import com.example.lab3.order.repository.CustomerRepository;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +42,19 @@ public class OrderService {
         this.customerRepository = customerRepository;
         this.publisher = publisher;
         log.info("Constructor injection done: discountService + customerRepository");
+        System.out.println("Constructor injection done: discountService + customerRepository");
     }
 
     // Setter injection
     @Autowired
     public void setPublisher(ApplicationEventPublisher publisher) {
         this.publisher = publisher;
-        log.info("Setter injection done: ApplicationEventPublisher");
+        System.out.println("Setter injection done");
+    }
+
+    @PostConstruct
+    public void afterFieldInjection() {
+        System.out.println("Field injection done");
     }
     // Metoda de aplicare discount
     public BigDecimal applyDiscount(Order order) {
