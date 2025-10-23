@@ -33,3 +33,17 @@ public class DbProperties {
     public String getUrl() { return url; }
     public void setUrl(String url) { this.url = url; }
 }
+
+/*
+ * Am folosit @ConfigurationProperties in clasa DbProperties pentru a citi toate datele
+ * de configurare ale bazei de date (host, port, user, parola etc.) din fisierele
+ * application-{profile}.yml.
+ *
+ * Am ales asta in loc de @Value deoarece:
+ * - e mai organizat: toate proprietatile sunt intr-un singur loc;
+ * - e mai usor de intretinut si extins;
+ * - merge bine cu profiluri si conditii (@Profile, @ConditionalOnExpression);
+ * - putem seta usor valori implicite sau genera automat URL-ul JDBC.
+ *
+ * In concluzie, @ConfigurationProperties face codul mai curat si mai flexibil.
+ */
