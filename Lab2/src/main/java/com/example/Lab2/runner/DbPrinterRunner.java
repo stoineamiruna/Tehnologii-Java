@@ -38,7 +38,7 @@ public class DbPrinterRunner implements CommandLineRunner {
             System.err.println("Cannot get DB metadata: " + ex.getMessage());
         }
 
-        // Creăm un tabel simplu dacă nu există și inserăm câteva rânduri (utile pentru demo)
+        // Cream un tabel simplu daca nu exista si inseram cateva randuri
         jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS person (id INT PRIMARY KEY, name VARCHAR(100))");
 
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM person", Integer.class);
@@ -53,7 +53,7 @@ public class DbPrinterRunner implements CommandLineRunner {
             System.out.println(" - id=" + r.get("id") + ", name=" + r.get("name"));
         }
 
-        // Afișăm valorile citite de la ConfigurationProperties (exemplu)
+        // Afișam valorile citite de la ConfigurationProperties
         System.out.println("DbProperties (from app.datasource): host=" + dbProperties.getHost()
                 + ", port=" + dbProperties.getPort()
                 + ", name=" + dbProperties.getName()
