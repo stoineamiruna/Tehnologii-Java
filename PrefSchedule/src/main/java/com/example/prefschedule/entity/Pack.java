@@ -1,11 +1,14 @@
 package com.example.prefschedule.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "packs")
+@Data
 public class Pack {
 
     @Id

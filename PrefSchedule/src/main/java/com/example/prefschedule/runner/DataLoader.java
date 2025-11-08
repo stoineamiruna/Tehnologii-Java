@@ -27,6 +27,7 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        /*
         System.out.println("=== Populating DB with Faker ===");
 
         Faker faker = new Faker();
@@ -75,5 +76,7 @@ public class DataLoader implements CommandLineRunner {
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
         System.out.println("After increment: " + updatedCourse.getGroupCount());
+
+         */
     }
 }

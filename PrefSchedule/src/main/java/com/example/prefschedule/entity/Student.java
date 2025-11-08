@@ -1,9 +1,11 @@
 package com.example.prefschedule.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
 @Table(name = "students")
+@Data
 public class Student {
 
     @Id
@@ -30,6 +32,7 @@ public class Student {
         this.email = email;
         this.year = year;
     }
+
 
     @Override
     public String toString() {
