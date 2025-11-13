@@ -8,6 +8,8 @@ import com.example.prefschedule.mapper.StudentMapper;
 import com.example.prefschedule.service.StudentService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +28,9 @@ public class StudentController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR')")
     public List<StudentResponseDTO> getAllStudents() {
+        System.out.println("Inside getAllStudents, auth: " + SecurityContextHolder.getContext().getAuthentication());
         return studentService.getAll()
                 .stream()
                 .map(mapper::toResponseDTO)
@@ -34,6 +38,7 @@ public class StudentController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<StudentResponseDTO> createStudent(@Valid @RequestBody StudentRequestDTO dto) {
         Student student = mapper.toEntity(dto);
         Student saved = studentService.save(student);
@@ -41,6 +46,7 @@ public class StudentController {
     }
 
     @PatchMapping("/{id}/email")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_STUDENT')")
     public ResponseEntity<StudentResponseDTO> updateEmail(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
@@ -54,6 +60,7 @@ public class StudentController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_STUDENT')")
     public ResponseEntity<StudentResponseDTO> updateStudent(
             @PathVariable Long id,
             @Valid @RequestBody StudentRequestDTO dto) {
@@ -64,12 +71,14 @@ public class StudentController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
         studentService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR')")
     public ResponseEntity<StudentResponseDTO> getStudentById(
             @PathVariable Long id,
             @RequestHeader(value = "If-None-Match", required = false) String ifNoneMatch) {

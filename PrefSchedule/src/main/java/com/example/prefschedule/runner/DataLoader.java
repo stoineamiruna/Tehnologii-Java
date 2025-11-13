@@ -1,17 +1,15 @@
 package com.example.prefschedule.runner;
 
+import com.example.prefschedule.entity.*;
+import com.example.prefschedule.repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.example.prefschedule.entity.Student;
-import com.example.prefschedule.entity.Instructor;
-import com.example.prefschedule.entity.Pack;
-import com.example.prefschedule.entity.Course;
-import com.example.prefschedule.repository.StudentRepository;
-import com.example.prefschedule.repository.InstructorRepository;
-import com.example.prefschedule.repository.PackRepository;
-import com.example.prefschedule.repository.CourseRepository;
 import com.github.javafaker.Faker;
+
+import java.util.List;
+import java.util.Set;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -24,6 +22,12 @@ public class DataLoader implements CommandLineRunner {
     private PackRepository packRepository;
     @Autowired
     private CourseRepository courseRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -78,5 +82,51 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("After increment: " + updatedCourse.getGroupCount());
 
          */
+        /*
+        Role studentRole = roleRepository.findByName("ROLE_STUDENT")
+                .orElseGet(() -> roleRepository.save(new Role(null, "ROLE_STUDENT")));
+        Role instructorRole = roleRepository.findByName("ROLE_INSTRUCTOR")
+                .orElseGet(() -> roleRepository.save(new Role(null, "ROLE_INSTRUCTOR")));
+        Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+                .orElseGet(() -> roleRepository.save(new Role(null, "ROLE_ADMIN")));
+
+        List<Student> students = studentRepository.findAll();
+        for (Student student : students) {
+            // verificăm dacă deja are user asociat
+            boolean alreadyExists = userRepository.existsByStudentProfile(student);
+            if (!alreadyExists) {
+                AppUser user = new AppUser();
+                user.setUsername(student.getEmail() != null ? student.getEmail() : student.getCode());
+                user.setPassword(passwordEncoder.encode("1234")); // parolă de test
+                user.setFullName(student.getName());
+                user.setRoles(Set.of(studentRole));
+                user.setStudentProfile(student);
+                userRepository.save(user);
+            }
+        }
+
+        List<Instructor> instructors = instructorRepository.findAll();
+        for (Instructor instructor : instructors) {
+            boolean alreadyExists = userRepository.existsByInstructorProfile(instructor);
+            if (!alreadyExists) {
+                AppUser user = new AppUser();
+                user.setUsername(instructor.getEmail() != null ? instructor.getEmail() : instructor.getName().replace(" ", "."));
+                user.setPassword(passwordEncoder.encode("1234"));
+                user.setFullName(instructor.getName());
+                user.setRoles(Set.of(instructorRole));
+                user.setInstructorProfile(instructor);
+                userRepository.save(user);
+            }
+        }
+
+        if (!userRepository.existsByUsername("admin")) {
+            AppUser admin = new AppUser();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setFullName("System Administrator");
+            admin.setRoles(Set.of(adminRole));
+            userRepository.save(admin);
+        }
+        */
     }
 }

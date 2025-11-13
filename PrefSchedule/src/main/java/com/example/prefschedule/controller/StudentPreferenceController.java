@@ -12,6 +12,7 @@ import com.example.prefschedule.repository.StudentRepository;
 import com.example.prefschedule.service.StudentPreferenceService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class StudentPreferenceController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public List<StudentPreferenceResponseDTO> getAllPreferences() {
         return service.getAll()
                 .stream()
@@ -45,12 +47,14 @@ public class StudentPreferenceController {
     }
 
     @GetMapping("/{studentId}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_STUDENT')")
     public List<StudentPreferenceResponseDTO> getPreferences(@PathVariable Long studentId) {
         List<StudentPreference> prefs = service.getByStudent_Id(studentId);
         return prefs.stream().map(mapper::toResponseDTO).collect(Collectors.toList());
     }
 
     @GetMapping("/preference/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public StudentPreferenceResponseDTO getPreference(@PathVariable Long id) {
         StudentPreference pref = service.getById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Preference not found"));
@@ -58,6 +62,7 @@ public class StudentPreferenceController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_STUDENT')")
     public StudentPreferenceResponseDTO createPreference(@Valid @RequestBody StudentPreferenceRequestDTO dto) {
         Student student = studentRepo.findById(dto.getStudentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
@@ -69,6 +74,7 @@ public class StudentPreferenceController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_STUDENT')")
     public StudentPreferenceResponseDTO updatePreference(@PathVariable Long id,
                                                          @Valid @RequestBody StudentPreferenceRequestDTO dto) {
         StudentPreference existing = service.getById(id)
@@ -88,6 +94,7 @@ public class StudentPreferenceController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_STUDENT')")
     public ResponseEntity<Void> deletePreference(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
