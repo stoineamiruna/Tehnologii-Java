@@ -62,6 +62,12 @@ public class DataLoader implements CommandLineRunner {
             Course course = new Course("optional", faker.code().asin(), faker.educator().campus(), faker.educator().course(), faker.number().numberBetween(1, 5), faker.lorem().sentence(), instructor, pack);
             courseRepository.save(course);
         }
+        for (int i = 0; i < 5; i++) {
+            Instructor instructor = instructorRepository.findAll().get(faker.number().numberBetween(0, instructorRepository.findAll().size()));
+            Pack pack = packRepository.findAll().get(faker.number().numberBetween(0, packRepository.findAll().size()));
+            Course course = new Course("compulsory", faker.code().asin(), faker.educator().campus(), faker.educator().course(), faker.number().numberBetween(1, 5), faker.lorem().sentence(), instructor, pack);
+            courseRepository.save(course);
+        }
 
         System.out.println("All Students: " + studentRepository.findAll());
         System.out.println("All Instructors: " + instructorRepository.findAll());

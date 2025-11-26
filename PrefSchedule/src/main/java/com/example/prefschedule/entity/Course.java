@@ -42,6 +42,9 @@ public class Course {
         this.instructor = instructor;
         this.pack = pack;
     }
+    public boolean isCompulsory() {
+        return "COMPULSORY".equalsIgnoreCase(this.type);
+    }
 
     @Override
     public String toString() {
@@ -55,4 +58,5 @@ public class Course {
                 ", description='" + description + '\'' +
                 '}';
     }
+
 }
