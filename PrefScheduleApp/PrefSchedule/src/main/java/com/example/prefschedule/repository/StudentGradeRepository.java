@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface StudentGradeRepository extends JpaRepository<StudentGrade, Long> {
     List<StudentGrade> findByStudentCode(String studentCode);
+    List<StudentGrade> findByCourseCode(String courseCode);
+    List<StudentGrade> findByStudentCodeAndCourseCode(String studentCode, String courseCode);
 }
