@@ -17,4 +17,5 @@ public interface PackRepository extends JpaRepository<Pack, Long> {
     @Transactional
     @Query("UPDATE Pack p SET p.name = :name WHERE p.id = :id")
     void updateName(Long id, String name);
+    List<Pack> findByYearAndSemester(Integer year, Integer semester);
 }

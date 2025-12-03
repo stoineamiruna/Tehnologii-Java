@@ -17,7 +17,7 @@ public class Course {
     private String code;
     private String abbr;
     private String name;
-    private int groupCount;
+    private Integer groupCount;
     private String description;
 
     @ManyToOne

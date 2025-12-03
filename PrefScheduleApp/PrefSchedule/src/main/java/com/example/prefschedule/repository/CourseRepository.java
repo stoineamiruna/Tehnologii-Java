@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
@@ -25,6 +26,10 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     WHERE c.code = :courseCode
     """)
     Boolean isCompulsory(@Param("courseCode") String courseCode);
+    Optional<Course> findByCode(String code);
+    List<Course> findByPackId(Long packId);
 
+    @Query("SELECT c FROM Course c WHERE c.pack.id = :packId AND c.type = 'OPTIONAL'")
+    List<Course> findOptionalCoursesByPackId(@Param("packId") Long packId);
 
 }
