@@ -28,7 +28,7 @@ public class InstructorPreferenceController {
     private final InstructorCoursePreferenceService preferenceService;
 
     @PostMapping
-    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR')")
     @Operation(summary = "Set preferences for a course",
             description = "Sets the instructor's preferences for student selection based on compulsory course grades")
     public ResponseEntity<InstructorPreferencesResponse> setPreferences(
@@ -57,7 +57,7 @@ public class InstructorPreferenceController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @Operation(summary = "Get all preferences",
             description = "Retrieves all instructor preferences (Admin only)")
     public ResponseEntity<List<InstructorCoursePreferenceDTO>> getAllPreferences() {
@@ -66,7 +66,7 @@ public class InstructorPreferenceController {
     }
 
     @DeleteMapping("/course/{courseId}")
-    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR')")
     @Operation(summary = "Delete preferences for a course",
             description = "Deletes all preferences for a specific course")
     public ResponseEntity<Void> deletePreferencesForCourse(@PathVariable Long courseId) {
