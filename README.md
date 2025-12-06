@@ -1,4 +1,21 @@
-# 📚 Lab 7 – Messaging with Kafka
+# Java Technologies — Master's Year 1
+
+This repository is used for the course **Java Technologies**, Master's Year 1, and contains my progress on the labs.
+**Author:** Stoinea Maria-Miruna
+
+---
+
+## 📘 List of Labs
+
+> **Note:** Labs **1–6** are not included in this file as they were presented physically during the lab sessions.
+
+* [Lab 7 – Messaging with Kafka](#lab-7--messaging-with-kafka)
+* [Lab 8 - Microservices](#lab-8---microservices)
+
+---
+
+
+# Lab 7 – Messaging with Kafka
 
 ## 🎯 Overview
 This lab extends the PrefSchedule project by implementing a distributed student-grade processing system using **Apache Kafka** as a message broker.  
@@ -107,7 +124,7 @@ Expected:
 
 ---
 
-# ⭐ Advanced (2p) – ✔️ Completed
+# Advanced (2p) – ✔️ Completed
 
 ## 1. Multi-Stage Processing Pipeline
 
@@ -213,7 +230,7 @@ Logs include:
 
 ---
 
-# 🚀 Running the System
+# Running the System
 
 1. Start Kafka  
 2. Create topics  
@@ -226,7 +243,7 @@ Logs include:
 
 ---
 
-# 📊 Expected Demo Output
+# Expected Demo Output
 
 ## Valid Grade Flow
 
@@ -267,7 +284,7 @@ Produced event = GradeEvent{studentCode='STU001', courseCode='COMP101', grade=9.
 
 ---
 
-# 🎯 Evaluation Summary
+# Evaluation Summary
 
 | Section     | Points | Status        |
 |------------|--------|---------------|
@@ -277,7 +294,7 @@ Produced event = GradeEvent{studentCode='STU001', courseCode='COMP101', grade=9.
 
 ---
 
-# 📁 Useful Kafka Commands
+# Useful Kafka Commands
 
 ```
 # List topics
@@ -301,10 +318,137 @@ kafka-topics --delete --topic grades_topic --bootstrap-server localhost:9092
 
 ---
 
-# 🔧 Technologies
+# Technologies
 - Apache Kafka 3.9.1  
 - Spring Boot 3.x  
 - Spring Kafka  
 - PostgreSQL  
 - Jackson  
 - Lombok  
+
+# Lab 8 - Microservices
+
+## 🎯 Overview
+
+This lab extends the PrefSchedule ecosystem by introducing a **StableMatch microservice** responsible for matching students to courses based on preferences and grades. The lab demonstrates **resilient microservice communication** between PrefSchedule and StableMatch using WebClient, with Resilience4j patterns applied to ensure fault tolerance.
+
+Key points:
+
+* **Stable Matching Algorithms**: Random and Gale-Shapley implementation for student-course assignment.
+* **Resilience Patterns**: CircuitBreaker, Retry, RateLimiter, Bulkhead, and TimeLimiter applied at service-client level.
+* **Integration**: PrefSchedule orchestrates the matching process via StableMatchClient with monitoring endpoints for real-time pattern state.
+* **Testing**: Stress-tested with JMeter scenarios simulating high load, failures, and timeouts.
+* **Persistence**: PostgreSQL stores instructor preferences, student grades, and matching results.
+* **Monitoring**: Real-time metrics exposed via REST endpoints to check service health and resilience states.
+
+
+## Implementation Status: ✅ Complete (4/4 points)
+
+### Compulsory (1p) ✅
+
+**StableMatch Microservice**
+- Created independent Spring Boot project on port 8081
+- Implemented REST controller with stable matching endpoint
+- Designed MatchingRequestDTO and MatchingResponseDTO with proper validation
+- JSON-based request/response format for matching problems
+
+### Homework (2p) ✅
+
+**Instructor Preferences**
+- Created `instructor_course_preferences` table with foreign key to courses
+- Implemented entity, repository, service, and controller layers
+- REST endpoints for CRUD operations on instructor preferences
+- Weighted grade calculation based on compulsory course performance
+
+**StableMatch REST Endpoints**
+- `GET /api/matching/assignments` - retrieve all assignments
+- `GET /api/matching/assignments/student/{code}` - get assignment for specific student
+- `GET /api/matching/assignments/course/{code}` - get assignments for specific course
+- `GET /api/matching/statistics` - retrieve matching statistics
+
+**Matching Algorithms**
+- Implemented random matching algorithm (shuffle-based assignment)
+- Stable matching algorithm using Gale-Shapley approach
+
+**Resilience Patterns (Basic)**
+- Retry: 3 attempts with exponential backoff (1s, 2s, 4s)
+- Fallback: Stable → Random → Empty response chain
+- Timeout: 30-second limit on service calls
+
+**Service Integration**
+- PrefSchedule invokes StableMatch via WebClient
+- MatchingOrchestrationService coordinates matching for packs
+- Support for both stable and random algorithms via configuration
+
+### Advanced (2p) ✅
+
+**Gale-Shapley Algorithm**
+- Complete implementation of stable matching algorithm
+- Student proposal phase with preference ordering
+- Course selection based on instructor preferences and student scores
+- Weighted grade calculation for student ranking
+- Guarantees stability in matching results
+
+**Advanced Resilience Patterns**
+- **CircuitBreaker**: Opens after 50% failure rate (5/10 requests), 5s recovery window
+- **Bulkhead**: Limits concurrent calls to 5, prevents service overload
+- **RateLimiter**: 10 requests/second limit with automatic rejection
+- All patterns configured via Resilience4j with health indicators
+
+**Failure Simulation & Testing**
+- ResilienceTestController endpoints for simulating failures, delays, and timeouts
+- ResilienceMonitoringController for real-time pattern state inspection
+- Configurable failure modes: complete failure, random failures, slow responses
+
+**JMeter Stress Testing**
+- Test plan with 5 scenarios covering all resilience patterns
+- Rate Limiter Test: 20 concurrent requests in 1 second
+- Circuit Breaker Test: 10 failing requests to trigger opening
+- Bulkhead Test: 10 concurrent requests with 5-second delays
+- Timeout Test: 35-second requests exceeding 30s limit
+- Combined Stress Test: 50 threads for 60 seconds with random failures
+- Results visualization via View Results Tree, Summary Report, and Graph Results
+
+## Architecture
+
+### StableMatch Service (Port 8081)
+- Independent microservice with no PrefSchedule dependencies
+- Matching algorithms (random and Gale-Shapley)
+- Test endpoints for resilience pattern demonstration
+
+### PrefSchedule Service (Port 8080)
+- Instructor preference management
+- StableMatchClient with full resilience patterns
+- Orchestration service for pack-level matching
+- Real-time monitoring endpoints
+
+## Technologies Used
+- Spring Boot 3.2.0
+- Spring WebFlux (WebClient)
+- Resilience4j (CircuitBreaker, Retry, RateLimiter, Bulkhead, TimeLimiter)
+- JMeter 5.6.3 for load testing
+- PostgreSQL for data persistence
+- Lombok for boilerplate reduction
+
+## Testing & Monitoring
+
+### Resilience Pattern Verification
+```bash
+# Circuit Breaker state
+curl http://localhost:8080/api/resilience/monitor/circuit-breaker/stableMatchService
+
+# Rate Limiter state
+curl http://localhost:8080/api/resilience/monitor/rate-limiter/stableMatchService
+
+# Bulkhead state
+curl http://localhost:8080/api/resilience/monitor/bulkhead/stableMatchService
+
+# All patterns overview
+curl http://localhost:8080/api/resilience/monitor/all
+```
+
+### JMeter Test Execution
+```bash
+cd apache-jmeter-5.6.3/bin
+./jmeter -n -t rate-limiter-test.jmx -l results.jtl -e -o report/
+```

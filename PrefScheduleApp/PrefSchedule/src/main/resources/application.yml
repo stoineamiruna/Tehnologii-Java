@@ -20,7 +20,7 @@ resilience4j:
           - java.util.concurrent.TimeoutException
         ignoreExceptions:
           - com.example.prefschedule.exception.ResourceNotFoundException
-
+  
   retry:
     instances:
       stableMatchService:
@@ -33,7 +33,7 @@ resilience4j:
           - java.io.IOException
         ignoreExceptions:
           - com.example.prefschedule.exception.ResourceNotFoundException
-
+  
   timelimiter:
     instances:
       stableMatchService:
@@ -46,3 +46,32 @@ resilience4j:
         limitForPeriod: 10
         limitRefreshPeriod: 1s
         timeoutDuration: 0s
+        registerHealthIndicator: true
+
+  bulkhead:
+    instances:
+      stableMatchService:
+        maxConcurrentCalls: 5
+        maxWaitDuration: 1s
+  
+  thread-pool-bulkhead:
+    instances:
+      stableMatchService:
+        maxThreadPoolSize: 4
+        coreThreadPoolSize: 2
+        queueCapacity: 2
+        keepAliveDuration: 20ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,circuitbreakers,circuitbreakerevents,ratelimiters,bulkheads
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+    ratelimiters:
+      enabled: true

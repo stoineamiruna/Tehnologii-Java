@@ -5,6 +5,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,17 +14,22 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Component
 @Slf4j
 public class StableMatchClient {
 
     private final WebClient webClient;
+    private final Executor taskExecutor;
 
-    public StableMatchClient(@Value("${stablematch.service.url}") String baseUrl) {
+    public StableMatchClient(
+            @Value("${stablematch.service.url}") String baseUrl,
+            @Qualifier("taskExecutor") Executor taskExecutor) {
         this.webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .build();
+        this.taskExecutor = taskExecutor;
     }
 
     @CircuitBreaker(name = "stableMatchService", fallbackMethod = "createRandomMatchingFallback")
@@ -80,15 +86,11 @@ public class StableMatchClient {
                 .bodyToMono(AssignmentDTO.class)
                 .toFuture();
     }
-
-    // Fallback method - tries random matching if stable matching fails
     private CompletableFuture<MatchingResponseDTO> createRandomMatchingFallback(
             MatchingRequestDTO request, Exception ex) {
         log.warn("Stable matching failed, falling back to random matching. Error: {}", ex.getMessage());
         return createRandomMatching(request);
     }
-
-    // Ultimate fallback - returns empty response if all attempts fail
     private CompletableFuture<MatchingResponseDTO> createRandomMatchingLocalFallback(
             MatchingRequestDTO request, Exception ex) {
         log.error("All matching attempts failed, returning empty response. Error: {}", ex.getMessage());

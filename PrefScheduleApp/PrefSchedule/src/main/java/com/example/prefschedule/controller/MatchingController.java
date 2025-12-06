@@ -39,7 +39,6 @@ public class MatchingController {
                 useStableAlgorithm ? "stable" : "random");
 
         try {
-            // Execute synchronously to avoid async security context issues
             MatchingResponseDTO response = orchestrationService
                     .performMatchingForPack(packId, useStableAlgorithm)
                     .get(); // Block and wait for result
@@ -62,10 +61,9 @@ public class MatchingController {
         log.info("Performing matching for all packs in year {} semester {}", year, semester);
 
         try {
-            // Execute synchronously
             Map<Long, MatchingResponseDTO> results = orchestrationService
                     .performMatchingForAllPacks(year, semester, useStableAlgorithm)
-                    .get(); // Block and wait for result
+                    .get();
 
             return ResponseEntity.ok(results);
         } catch (Exception ex) {

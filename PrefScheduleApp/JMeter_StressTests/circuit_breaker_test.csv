@@ -1,0 +1,20 @@
+1765038747513,7,Enable Failures,200,,Circuit Breaker Test 2-1,text,true,,188,440,1,3,http://localhost:8084/api/test/resilience/enable-failure,7,0,3
+1765038747521,155,Trigger Circuit Breaker,200,,Circuit Breaker Test 2-1,text,true,,877,425,1,8,http://localhost:8080/api/matching/pack/1,155,0,2
+1765038747714,5,Enable Failures,200,,Circuit Breaker Test 2-2,text,true,,188,440,1,2,http://localhost:8084/api/test/resilience/enable-failure,5,0,2
+1765038747720,70,Trigger Circuit Breaker,200,,Circuit Breaker Test 2-2,text,true,,877,425,1,1,http://localhost:8080/api/matching/pack/1,70,0,2
+1765038747968,5,Enable Failures,200,,Circuit Breaker Test 2-3,text,true,,188,440,1,1,http://localhost:8084/api/test/resilience/enable-failure,5,0,1
+1765038747974,67,Trigger Circuit Breaker,200,,Circuit Breaker Test 2-3,text,true,,877,425,1,1,http://localhost:8080/api/matching/pack/1,66,0,1
+1765038748117,4,Enable Failures,200,,Circuit Breaker Test 2-4,text,true,,188,440,1,1,http://localhost:8084/api/test/resilience/enable-failure,4,0,2
+1765038748122,55,Trigger Circuit Breaker,200,,Circuit Breaker Test 2-4,text,true,,877,425,1,1,http://localhost:8080/api/matching/pack/1,54,0,1
+1765038748317,3,Enable Failures,200,,Circuit Breaker Test 2-5,text,true,,188,440,1,1,http://localhost:8084/api/test/resilience/enable-failure,3,0,2
+1765038748321,49,Trigger Circuit Breaker,200,,Circuit Breaker Test 2-5,text,true,,877,425,1,2,http://localhost:8080/api/matching/pack/1,48,0,1
+1765038748517,3,Enable Failures,200,,Circuit Breaker Test 2-6,text,true,,188,440,1,1,http://localhost:8084/api/test/resilience/enable-failure,3,0,1
+1765038748521,50,Trigger Circuit Breaker,200,,Circuit Breaker Test 2-6,text,true,,877,425,1,1,http://localhost:8080/api/matching/pack/1,49,0,1
+1765038748717,4,Enable Failures,200,,Circuit Breaker Test 2-7,text,true,,188,440,1,1,http://localhost:8084/api/test/resilience/enable-failure,4,0,1
+1765038748722,56,Trigger Circuit Breaker,200,,Circuit Breaker Test 2-7,text,true,,877,425,1,1,http://localhost:8080/api/matching/pack/1,55,0,1
+1765038748917,5,Enable Failures,200,,Circuit Breaker Test 2-8,text,true,,188,440,1,1,http://localhost:8084/api/test/resilience/enable-failure,5,0,2
+1765038748923,81,Trigger Circuit Breaker,200,,Circuit Breaker Test 2-8,text,true,,877,425,1,1,http://localhost:8080/api/matching/pack/1,81,0,2
+1765038749117,4,Enable Failures,200,,Circuit Breaker Test 2-9,text,true,,188,440,1,1,http://localhost:8084/api/test/resilience/enable-failure,4,0,1
+1765038749121,56,Trigger Circuit Breaker,200,,Circuit Breaker Test 2-9,text,true,,877,425,1,1,http://localhost:8080/api/matching/pack/1,55,0,2
+1765038749305,4,Enable Failures,200,,Circuit Breaker Test 2-10,text,true,,188,440,1,1,http://localhost:8084/api/test/resilience/enable-failure,4,0,2
+1765038749310,55,Trigger Circuit Breaker,200,,Circuit Breaker Test 2-10,text,true,,877,425,1,1,http://localhost:8080/api/matching/pack/1,55,0,1
