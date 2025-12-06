@@ -327,27 +327,18 @@ kafka-topics --delete --topic grades_topic --bootstrap-server localhost:9092
 - Lombok  
 
 # Lab 8 - Microservices
-
 ## 🎯 Overview
 
 This lab extends the PrefSchedule ecosystem by introducing a **StableMatch microservice** responsible for matching students to courses based on preferences and grades. The lab demonstrates **resilient microservice communication** between PrefSchedule and StableMatch using WebClient, with Resilience4j patterns applied to ensure fault tolerance.
 
-Key points:
+---
 
-* **Stable Matching Algorithms**: Random and Gale-Shapley implementation for student-course assignment.
-* **Resilience Patterns**: CircuitBreaker, Retry, RateLimiter, Bulkhead, and TimeLimiter applied at service-client level.
-* **Integration**: PrefSchedule orchestrates the matching process via StableMatchClient with monitoring endpoints for real-time pattern state.
-* **Testing**: Stress-tested with JMeter scenarios simulating high load, failures, and timeouts.
-* **Persistence**: PostgreSQL stores instructor preferences, student grades, and matching results.
-* **Monitoring**: Real-time metrics exposed via REST endpoints to check service health and resilience states.
-
-
-## Implementation Status: ✅ Complete (4/4 points)
+## Implementation Status: ✅ Complete
 
 ### Compulsory (1p) ✅
 
 **StableMatch Microservice**
-- Created independent Spring Boot project on port 8081
+- Created independent Spring Boot project on port 8084
 - Implemented REST controller with stable matching endpoint
 - Designed MatchingRequestDTO and MatchingResponseDTO with proper validation
 - JSON-based request/response format for matching problems
@@ -407,11 +398,11 @@ Key points:
 - Bulkhead Test: 10 concurrent requests with 5-second delays
 - Timeout Test: 35-second requests exceeding 30s limit
 - Combined Stress Test: 50 threads for 60 seconds with random failures
-- Results visualization via View Results Tree, Summary Report, and Graph Results
+- Test results saved in `JMeter_StressTests/` folder (all tests passed)
 
 ## Architecture
 
-### StableMatch Service (Port 8081)
+### StableMatch Service (Port 8084)
 - Independent microservice with no PrefSchedule dependencies
 - Matching algorithms (random and Gale-Shapley)
 - Test endpoints for resilience pattern demonstration
@@ -445,10 +436,4 @@ curl http://localhost:8080/api/resilience/monitor/bulkhead/stableMatchService
 
 # All patterns overview
 curl http://localhost:8080/api/resilience/monitor/all
-```
-
-### JMeter Test Execution
-```bash
-cd apache-jmeter-5.6.3/bin
-./jmeter -n -t rate-limiter-test.jmx -l results.jtl -e -o report/
 ```
