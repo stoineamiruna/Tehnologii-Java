@@ -138,58 +138,5 @@ public class DataLoader implements CommandLineRunner {
         }
         */
 
-        // 2) INDEXES
-        jdbcTemplate.execute("""
-        CREATE INDEX IF NOT EXISTS idx_instructor_pref_course_id 
-        ON instructor_course_preferences(course_id);
-        """);
-
-        jdbcTemplate.execute("""
-        CREATE INDEX IF NOT EXISTS idx_instructor_pref_compulsory
-        ON instructor_course_preferences(compulsory_course_abbr);
-        """);
-
-        // 3) COMMENTS
-        jdbcTemplate.execute("""
-        COMMENT ON TABLE instructor_course_preferences IS 
-        'Stores instructor preferences for student selection based on compulsory course grades';
-        """);
-
-        jdbcTemplate.execute("""
-        COMMENT ON COLUMN instructor_course_preferences.course_id IS 
-        'The optional course for which preferences are set';
-        """);
-
-        jdbcTemplate.execute("""
-        COMMENT ON COLUMN instructor_course_preferences.compulsory_course_abbr IS 
-        'Abbreviation of the compulsory course used for grading criteria';
-        """);
-
-        jdbcTemplate.execute("""
-        COMMENT ON COLUMN instructor_course_preferences.weight_percentage IS 
-        'Weight percentage (0-100) for this compulsory course in student ranking';
-        """);
-
-        // 4) INSERT DATA (NOW ON CONFLICT WILL WORK!)
-        jdbcTemplate.execute("""
-        INSERT INTO instructor_course_preferences (course_id, compulsory_course_abbr, weight_percentage)
-        SELECT c.id, 'MATH', 100.0 FROM courses c
-        WHERE c.code = 'CO1' AND c.type = 'OPTIONAL'
-        ON CONFLICT (course_id, compulsory_course_abbr) DO NOTHING;
-        """);
-
-        jdbcTemplate.execute("""
-        INSERT INTO instructor_course_preferences (course_id, compulsory_course_abbr, weight_percentage)
-        SELECT c.id, 'OOP', 50.0 FROM courses c
-        WHERE c.code = 'CO2' AND c.type = 'OPTIONAL'
-        ON CONFLICT (course_id, compulsory_course_abbr) DO NOTHING;
-        """);
-
-        jdbcTemplate.execute("""
-        INSERT INTO instructor_course_preferences (course_id, compulsory_course_abbr, weight_percentage)
-        SELECT c.id, 'JAVA', 50.0 FROM courses c
-        WHERE c.code = 'CO2' AND c.type = 'OPTIONAL'
-        ON CONFLICT (course_id, compulsory_course_abbr) DO NOTHING;
-        """);
     }
 }
