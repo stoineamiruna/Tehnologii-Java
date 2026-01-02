@@ -11,6 +11,7 @@ This repository is used for the course **Java Technologies**, Master's Year 1, a
 
 * [Lab 7 – Messaging with Kafka](#lab-7--messaging-with-kafka)
 * [Lab 8 - Microservices](#lab-8---microservices)
+* [Lab 9 - Spring Cloud](#lab-9---spring-cloud)
 
 ---
 
@@ -437,3 +438,717 @@ curl http://localhost:8080/api/resilience/monitor/bulkhead/stableMatchService
 # All patterns overview
 curl http://localhost:8080/api/resilience/monitor/all
 ```
+
+# Lab 9 - Spring Cloud
+
+## 🎯 Overview
+
+This lab transforms the PrefSchedule ecosystem into a **cloud-native microservices architecture** using Spring Cloud. The system now includes **service discovery**, **centralized configuration management**, **API Gateway with load balancing**, and **enhanced observability** through metrics collection and visualization.
+
+The architecture consists of **8 microservices**:
+- **PrefSchedule** (8080) - Main scheduling service
+- **StableMatch** (8084, 8086, 8087) - Multiple instances for load balancing
+- **QuickGrade** (8081) - Grade event publisher
+- **Enricher** (8082) - Student enrichment service
+- **CourseEnricher** (8083) - Course enrichment service
+- **Eureka Server** (8761) - Service discovery
+- **API Gateway** (8085) - Unified entry point with load balancing and routing
+- **Config Server** (8888) - Centralized configuration
+
+---
+
+## Implementation Status: ✅ Complete 
+
+### Compulsory (1p) ✅
+
+**Micrometer and Spring Boot Actuator Integration**
+- Added Actuator dependencies to all 6 microservices
+- Exposed metrics endpoints: `/actuator/health`, `/actuator/metrics`, `/actuator/prometheus`
+- Configured detailed health information for all services
+
+**StableMatch Algorithm Metrics**
+- **Counter**: `stablematch.algorithm.invocations`
+  - Tracks total invocations of stable and random matching algorithms
+  - Tagged by algorithm type: `stable` vs `random`
+  - Current count accessible via `/api/metrics/matching`
+  
+- **Timer**: `stablematch.algorithm.response.time`
+  - Measures execution time in milliseconds
+  - Provides mean, max, and percentile distributions
+  - Tagged by algorithm type for comparison
+
+**SLF4J Logging Implementation**
+- Comprehensive logging across all services:
+  ```java
+  log.info("Starting stable matching for {} students", count);
+  log.error("Error during matching execution", exception);
+  log.debug("Student score calculated: {}", score);
+  ```
+- Configurable log levels per package
+- Structured logging patterns with timestamps and thread information
+
+---
+
+### Homework (2p) ✅
+
+#### 1. Prometheus Installation and Configuration
+
+**Prometheus Setup**
+- Version: 2.48.0
+- Running on: `http://localhost:9090`
+- Scrape interval: 15 seconds for general metrics, 5 seconds for application metrics
+
+**Monitored Services Configuration**
+```yaml
+scrape_configs:
+  - job_name: 'stablematch'
+    metrics_path: '/actuator/prometheus'
+    targets: ['localhost:8084', 'localhost:8086', 'localhost:8087']
+  
+  - job_name: 'prefschedule'
+    targets: ['localhost:8080']
+  
+  - job_name: 'quickgrade'
+    targets: ['localhost:8081']
+  
+  - job_name: 'enricher'
+    targets: ['localhost:8082']
+  
+  - job_name: 'course-enricher'
+    targets: ['localhost:8083']
+    
+  - job_name: 'api-gateway'
+    targets: ['localhost:8085']
+```
+
+**Collected Metrics**
+- Algorithm response times (mean, p95, p99)
+- Invocation counters per algorithm type
+- JVM memory usage (heap, non-heap)
+- HTTP request rates and latencies
+- Kafka consumer lag and throughput
+- Circuit breaker state transitions
+
+---
+
+#### 2. Grafana Dashboard and Alerting
+
+**Grafana Setup**
+- Version: 10.2.2
+- Running on: `http://localhost:3000`
+- Data source: Prometheus (`http://localhost:9090`)
+
+**Custom Dashboard: "StableMatch Metrics"**
+
+Panels included:
+1. **Algorithm Response Time** (Time Series)
+   - Query: `rate(stablematch_algorithm_response_time_seconds_sum[1m]) / rate(stablematch_algorithm_response_time_seconds_count[1m]) * 1000`
+   - Shows stable vs random algorithm performance
+
+2. **Algorithm Invocation Count** (Time Series)
+   - Tracks cumulative invocations over time
+   - Separate lines for stable and random algorithms
+
+3. **Memory Usage Gauge** (Gauge)
+   - Real-time heap memory utilization percentage
+   - Color-coded thresholds: green (<70%), yellow (70-85%), red (>85%)
+
+4. **95th Percentile Response Time** (Stat Panel)
+   - Critical performance indicator
+   - Alert threshold: >1000ms
+
+5. **Request Rate** (Time Series)
+   - HTTP requests per second to matching endpoints
+
+**Alert Rules**
+
+**High Memory Usage Alert**
+- Name: `High Memory Usage - StableMatch`
+- Condition: `jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.85`
+- Duration: 5 minutes
+- Severity: Warning
+- Notification: Console log + email (configurable)
+
+**Slow Response Time Alert**
+- Name: `Slow Algorithm Response`
+- Condition: `histogram_quantile(0.95, stablematch_algorithm_response_time_seconds_bucket) > 1.0`
+- Duration: 2 minutes
+- Severity: Critical
+
+---
+
+#### 3. Service Discovery with Eureka
+
+**Eureka Server**
+- Port: 8761
+- Dashboard: `http://localhost:8761`
+- Self-preservation mode disabled for development
+
+**Registered Services**
+All 6 microservices successfully registered:
+```
+Application         AMIs    Availability Zones    Status
+STABLEMATCH         3       n/a (3) (3)          UP (3) - localhost:8084, :8086, :8087
+PREFSCHEDULE        1       n/a (1) (1)          UP (1) - localhost:8080
+QUICKGRADE          1       n/a (1) (1)          UP (1) - localhost:8081
+ENRICHER            1       n/a (1) (1)          UP (1) - localhost:8082
+COURSE-ENRICHER     1       n/a (1) (1)          UP (1) - localhost:8083
+API-GATEWAY         1       n/a (1) (1)          UP (1) - localhost:8085
+```
+
+**Client Configuration**
+- Heartbeat interval: 10 seconds
+- Lease expiration: 30 seconds
+- Registry fetch interval: 5 seconds
+- Prefer IP address: true for containerization readiness
+
+**Dynamic Service Discovery**
+PrefSchedule now discovers StableMatch instances dynamically:
+```java
+@LoadBalanced
+WebClient.Builder webClientBuilder;
+
+// Service URL: http://stablematch (resolved via Eureka)
+```
+
+---
+
+#### 4. Multiple StableMatch Instances
+
+**Instance Configuration**
+- Instance 1: Port 8084
+- Instance 2: Port 8086
+- Instance 3: Port 8087
+
+**Starting Multiple Instances**
+```bash
+# Windows
+start-multiple-stablematch.bat
+
+# Linux/Mac
+./start-multiple-stablematch.sh
+```
+
+Each instance registers with Eureka with unique instance IDs:
+- `stablematch:8084`
+- `stablematch:8086`
+- `stablematch:8087`
+
+**Load Distribution Verification**
+Test load balancing:
+```bash
+for i in {1..15}; do
+  curl http://localhost:8085/api/matching/pack/1
+done
+```
+
+Logs show round-robin distribution across instances:
+```
+Instance 8084: 5 requests
+Instance 8086: 5 requests
+Instance 8087: 5 requests
+```
+
+---
+
+#### 5. API Gateway with Load Balancing
+
+**Gateway Configuration**
+- Port: 8085 (unified entry point)
+- Load balancer: Spring Cloud LoadBalancer
+- Routing strategy: Round-robin
+
+**Route Definitions**
+
+```yaml
+spring.cloud.gateway.routes:
+  # StableMatch routes
+  - id: stablematch-service
+    uri: lb://stablematch
+    predicates:
+      - Path=/api/matching/**
+    filters:
+      - CircuitBreaker:
+          name: stableMatchCircuitBreaker
+          fallbackUri: forward:/fallback/stablematch
+  
+  # PrefSchedule routes
+  - id: prefschedule-service
+    uri: lb://prefschedule
+    predicates:
+      - Path=/api/instructor-preferences/**,/api/students/**
+```
+
+**Circuit Breaker Integration**
+Gateway-level circuit breaker protects backend services:
+- Failure threshold: 50%
+- Wait duration: 5 seconds
+- Fallback endpoints for graceful degradation
+
+**CORS Configuration**
+Global CORS enabled for frontend integration:
+```yaml
+globalcors:
+  corsConfigurations:
+    '[/**]':
+      allowedOrigins: "*"
+      allowedMethods: [GET, POST, PUT, DELETE, OPTIONS]
+```
+
+---
+
+### Advanced (2p) ✅
+
+#### 1. Spring Cloud Config Server
+
+**Config Server Setup**
+- Port: 8888
+- Backend: Git repository (`file://~/config-repo`)
+- Profiles: development, production
+- Encryption: Vault integration for secrets
+
+**Centralized Configuration Repository**
+
+Repository structure:
+```
+~/config-repo/
+├── stablematch.yml
+├── prefschedule.yml
+├── quickgrade.yml
+├── enricher.yml
+├── course-enricher.yml
+└── application.yml (shared)
+```
+
+**Sample Configuration: `stablematch.yml`**
+```yaml
+matching:
+  algorithm:
+    default: stable
+    timeout-seconds: 30
+  cache:
+    enabled: true
+    ttl-minutes: 10
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+```
+
+**Configuration Refresh**
+Services support dynamic configuration updates:
+```java
+@RefreshScope
+public class MatchingService {
+    @Value("${matching.algorithm.default}")
+    private String defaultAlgorithm;
+}
+```
+
+Trigger refresh:
+```bash
+curl -X POST http://localhost:8084/actuator/refresh
+```
+
+---
+
+#### 2. HashiCorp Vault Integration
+
+**Vault Setup**
+- Version: 1.15.0
+- Running in dev mode: `http://localhost:8200`
+- Root token configured via environment variable
+
+**Secret Storage Structure**
+```
+secret/
+├── stablematch/
+│   ├── database.username
+│   ├── database.password
+│   ├── jwt.secret
+│   └── api.key
+├── prefschedule/
+│   ├── database.username
+│   ├── database.password
+│   ├── jwt.secret
+│   ├── kafka.username
+│   └── kafka.password
+└── application/
+    ├── encryption.key
+    └── smtp.password
+```
+
+**Vault Configuration in Services**
+```yaml
+spring.cloud.vault:
+  enabled: true
+  host: localhost
+  port: 8200
+  scheme: http
+  authentication: TOKEN
+  token: ${VAULT_TOKEN}
+  kv:
+    enabled: true
+    backend: secret
+```
+
+**Secrets Injection**
+```java
+@Value("${database.username}")
+private String dbUsername;
+
+@Value("${database.password}")
+private String dbPassword;
+```
+
+**Security Benefits**
+- Passwords never stored in application.yml
+- Centralized secret rotation
+- Audit logging of secret access
+- Encryption at rest
+
+**Demo Endpoint**
+```bash
+curl http://localhost:8084/api/config/properties
+```
+
+Response (passwords hidden):
+```json
+{
+  "vault-secrets": {
+    "database.username": "stablematch_user",
+    "note": "Password is hidden for security"
+  },
+  "application-config": {
+    "default-algorithm": "stable",
+    "timeout-seconds": 30
+  }
+}
+```
+
+---
+
+#### 3. Event-Based Communication with Spring Cloud Stream
+
+**Enhanced Kafka Architecture**
+
+Previous pipeline (Lab 8):
+```
+QuickGrade → Enricher → CourseEnricher → PrefSchedule
+```
+
+New addition (Lab 9):
+```
+PrefSchedule ←→ StableMatch (bidirectional event-based matching)
+```
+
+**New Kafka Topics**
+- `matching-requests` - PrefSchedule publishes matching jobs
+- `matching-responses` - StableMatch publishes results
+
+**Event Flow**
+
+1. **PrefSchedule publishes matching request**
+```java
+MatchingRequestEvent event = MatchingRequestEvent.builder()
+    .requestId(UUID.randomUUID().toString())
+    .packId(1L)
+    .algorithm("stable")
+    .studentPreferences(...)
+    .courses(...)
+    .instructorPreferences(...)
+    .build();
+
+eventPublisher.publishMatchingRequest(event);
+```
+
+2. **StableMatch processes event**
+```java
+@Bean
+public Function<MatchingRequestEvent, Message<MatchingResponseEvent>> processMatching() {
+    return event -> {
+        MatchingResponseDTO response = matchingService.createStableMatching(...);
+        return MessageBuilder.withPayload(responseEvent).build();
+    };
+}
+```
+
+3. **PrefSchedule consumes response**
+```java
+@Bean
+public Consumer<MatchingResponseEvent> handleMatchingResponse() {
+    return event -> {
+        if ("SUCCESS".equals(event.getStatus())) {
+            // Store assignments, notify students
+        }
+    };
+}
+```
+
+**Benefits of Event-Based Approach**
+- **Asynchronous processing**: PrefSchedule doesn't block waiting for results
+- **Scalability**: Multiple StableMatch instances process requests in parallel
+- **Resilience**: Kafka guarantees message delivery even if services restart
+- **Decoupling**: Services communicate via events, not direct HTTP calls
+- **Audit trail**: All matching requests and responses logged in Kafka
+
+**Hybrid Communication Model**
+- **Synchronous REST**: Real-time matching via API Gateway (when immediate response needed)
+- **Asynchronous Events**: Batch matching via Kafka (for scheduled or bulk operations)
+
+**Spring Cloud Stream Configuration**
+```yaml
+spring.cloud.stream:
+  bindings:
+    processMatching-in-0:
+      destination: matching-requests
+      group: stablematch-group
+    processMatching-out-0:
+      destination: matching-responses
+  kafka:
+    binder:
+      brokers: localhost:9092
+```
+
+**Exactly-Once Semantics**
+Reuses Lab 8 Kafka configuration:
+- Idempotent producers
+- Transactional consumers
+- No message loss or duplication
+
+---
+
+## Architecture Diagram
+
+```
+                          ┌─────────────────┐
+                          │  Eureka Server  │
+                          │     :8761       │
+                          └────────┬────────┘
+                                   │ Service Registry
+                    ┌──────────────┼──────────────┐
+                    │              │              │
+         ┌──────────▼─────┐  ┌─────▼───────┐  ┌───▼────────┐
+         │  API Gateway   │  │ Config      │  │ Prometheus │
+         │     :8085      │  │ Server      │  │   :9090    │
+         └───────┬────────┘  │   :8888     │  └─────┬──────┘
+                 │           └─────────────┘        │
+         ┌───────┴────────────────────────┐         │
+         │  Load Balanced Routing         │         │
+         └───┬─────────┬──────────┬───────┘         │
+             │         │          │                 │
+    ┌────────▼──┐ ┌────▼──────┐ ┌─▼──────────┐      │
+    │StableMatch│ │StableMatch│ │StableMatch │◄─────┤ Metrics
+    │  :8084    │ │  :8086    │ │  :8087     │      │
+    └─────┬─────┘ └────┬──────┘ └─────┬──────┘      │
+          │            │              │             │
+          └────────────┴──────────────┘             │
+                       │                            │
+              ┌────────▼────────┐                   │
+              │  PrefSchedule   │◄──────────────────┤
+              │     :8080       │                   │
+              └────────┬────────┘                   │
+                       │                            │
+         ┌─────────────┼─────────────┐              │
+         │             │             │              │
+     ┌────▼─────┐  ┌───▼──────┐  ┌──▼─────────┐     │
+     │QuickGrade│  │ Enricher │  │CourseEnrich│◄────┤
+     │  :8081   │  │  :8082   │  │  :8083     │     │
+     └──────────┘  └──────────┘  └────────────┘     │
+                                                    │
+                          ┌─────────────────────────┘
+                          │
+                    ┌─────▼──────┐
+                    │  Grafana   │
+                    │   :3000    │
+                    └────────────┘
+```
+
+---
+
+## Running the Complete System
+
+### Startup Sequence
+
+```bash
+# 1. Start Infrastructure
+kafka-server-start.bat config/server.properties
+prometheus --config.file=prometheus.yml
+grafana-server  # or service start
+vault server -dev  # optional
+
+# 2. Start Spring Cloud Services
+cd eureka-server && mvn spring-boot:run &
+cd config-server && mvn spring-boot:run &
+
+# 3. Start Microservices Pipeline
+cd enricher && mvn spring-boot:run &
+cd course-enricher && mvn spring-boot:run &
+cd quickgrade && mvn spring-boot:run &
+
+# 4. Start Multiple StableMatch Instances
+./start-multiple-stablematch.sh
+
+# 5. Start PrefSchedule
+cd prefschedule && mvn spring-boot:run &
+
+# 6. Start API Gateway
+cd api-gateway && mvn spring-boot:run &
+```
+
+### Verification Checklist
+
+```bash
+# ✓ Eureka Dashboard
+curl http://localhost:8761
+
+# ✓ Prometheus Targets
+curl http://localhost:9090/targets
+
+# ✓ Grafana Dashboard
+open http://localhost:3000
+
+# ✓ API Gateway Routes
+curl http://localhost:8085/actuator/gateway/routes
+
+# ✓ Config Server
+curl http://localhost:8888/stablematch/default
+
+# ✓ Metrics Collection
+curl http://localhost:8084/actuator/prometheus | grep stablematch_algorithm
+```
+
+---
+
+## Testing and Validation
+
+### 1. Metrics Collection Test
+```bash
+# Generate load
+for i in {1..50}; do
+  curl -X POST http://localhost:8085/api/matching/pack/1
+done
+
+# Check metrics
+curl http://localhost:8084/api/metrics/matching
+```
+
+Expected output:
+```json
+{
+  "counters": {
+    "stable_match_invocations": 50,
+    "random_match_invocations": 0
+  },
+  "timers": {
+    "stable_match_mean_time_ms": 145.3,
+    "stable_match_max_time_ms": 287.5
+  }
+}
+```
+
+### 2. Load Balancing Verification
+```bash
+# Send requests through gateway
+for i in {1..30}; do
+  curl http://localhost:8085/api/matching/statistics
+done
+```
+
+Check logs for distribution:
+```
+[StableMatch-8084] Processed request #1, #4, #7, #10...
+[StableMatch-8086] Processed request #2, #5, #8, #11...
+[StableMatch-8087] Processed request #3, #6, #9, #12...
+```
+
+### 3. Service Discovery Test
+```bash
+# Stop one StableMatch instance
+kill <pid-8086>
+
+# Verify Eureka removes it
+curl http://localhost:8761 | grep 8086  # Should not appear
+
+# Requests continue routing to 8084 and 8087
+curl http://localhost:8085/api/matching/statistics  # Still works
+```
+
+### 4. Configuration Refresh Test
+```bash
+# Update config repo
+cd ~/config-repo
+echo "matching.algorithm.default: random" >> stablematch.yml
+git add . && git commit -m "Change default algorithm"
+
+# Trigger refresh
+curl -X POST http://localhost:8084/actuator/refresh
+
+# Verify change
+curl http://localhost:8084/api/config/properties
+```
+
+### 5. Event-Based Matching Test
+```bash
+# Trigger async matching
+curl -X POST http://localhost:8080/api/matching/async/pack/1 \
+  -H "Authorization: Bearer <token>"
+
+# Response: 202 Accepted
+{
+  "requestId": "abc-123-def",
+  "status": "PROCESSING",
+  "message": "Matching request has been queued"
+}
+
+# Check Kafka
+kafka-console-consumer --topic matching-responses --bootstrap-server localhost:9092
+```
+
+### 6. Alert Trigger Test
+```bash
+# Simulate high memory usage
+curl -X POST http://localhost:8084/api/test/memory-stress
+
+# Check Grafana Alerts
+open http://localhost:3000/alerting/list
+# Should see "High Memory Usage" alert firing
+```
+
+---
+
+## Monitoring Dashboard Queries
+
+### Key Prometheus Queries
+
+**Algorithm Response Time (Mean)**
+```promql
+rate(stablematch_algorithm_response_time_seconds_sum{algorithm="stable"}[1m]) 
+/ 
+rate(stablematch_algorithm_response_time_seconds_count{algorithm="stable"}[1m]) 
+* 1000
+```
+
+**Total Invocations**
+```promql
+stablematch_algorithm_invocations_total
+```
+
+**Memory Usage Percentage**
+```promql
+100 * (jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"})
+```
+
+**Request Rate per Instance**
+```promql
+rate(http_server_requests_seconds_count{uri=~"/api/matching.*"}[1m])
+```
+
+**Service Availability**
+```promql
+up{job="stablematch"}
+```
+
+---
+

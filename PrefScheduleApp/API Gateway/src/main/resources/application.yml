@@ -1,0 +1,96 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # StableMatch Service Routes
+        - id: stablematch-service
+          uri: lb://stablematch
+          predicates:
+            - Path=/stablematch/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: stableMatchCircuitBreaker
+                fallbackUri: forward:/fallback/stablematch
+
+        # PrefSchedule Service Routes
+        - id: prefschedule-service
+          uri: lb://prefschedule
+          predicates:
+            - Path=/prefschedule/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: prefScheduleCircuitBreaker
+                fallbackUri: forward:/fallback/prefschedule
+
+        # Direct routes for easier access
+        - id: stablematch-api
+          uri: lb://stablematch
+          predicates:
+            - Path=/api/matching/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: stableMatchCircuitBreaker
+
+        - id: prefschedule-api
+          uri: lb://prefschedule
+          predicates:
+            - Path=/api/instructor-preferences/**,/api/students/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: prefScheduleCircuitBreaker
+
+      # Global CORS configuration
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+
+# Eureka Client Configuration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    registerWithEureka: true
+    fetchRegistry: true
+  instance:
+    preferIpAddress: true
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# Logging
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.university.apigateway: INFO

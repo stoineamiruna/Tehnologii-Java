@@ -86,11 +86,15 @@ public class StableMatchClient {
                 .bodyToMono(AssignmentDTO.class)
                 .toFuture();
     }
+
+    // Fallback method - tries random matching if stable matching fails
     private CompletableFuture<MatchingResponseDTO> createRandomMatchingFallback(
             MatchingRequestDTO request, Exception ex) {
         log.warn("Stable matching failed, falling back to random matching. Error: {}", ex.getMessage());
         return createRandomMatching(request);
     }
+
+    // Ultimate fallback - returns empty response if all attempts fail
     private CompletableFuture<MatchingResponseDTO> createRandomMatchingLocalFallback(
             MatchingRequestDTO request, Exception ex) {
         log.error("All matching attempts failed, returning empty response. Error: {}", ex.getMessage());

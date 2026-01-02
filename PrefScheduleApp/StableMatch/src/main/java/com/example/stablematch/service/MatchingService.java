@@ -1,47 +1,181 @@
 package com.example.stablematch.service;
 
 import com.example.stablematch.dto.*;
+import io.micrometer.core.instrument.Timer;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class MatchingService {
+
+    private final MetricsService metricsService;
+
+    /**
+     * Random algorithm for matching students to courses
+     */
     public MatchingResponseDTO createRandomMatching(MatchingRequestDTO request) {
-        log.info("Starting random matching for {} students and {} courses",
-                request.getStudentPreferences().size(),
-                request.getCourses().size());
+        long startTime = System.nanoTime();
 
-        List<AssignmentDTO> assignments = new ArrayList<>();
-        Map<String, Integer> courseAssignmentCounts = new HashMap<>();
-        Map<String, Integer> courseCapacities = request.getCourses().stream()
-                .collect(Collectors.toMap(CourseCapacityDTO::getCourseCode, CourseCapacityDTO::getCapacity));
+        try {
+            log.info("Starting random matching for {} students and {} courses",
+                    request.getStudentPreferences().size(),
+                    request.getCourses().size());
 
-        request.getCourses().forEach(c -> courseAssignmentCounts.put(c.getCourseCode(), 0));
+            metricsService.incrementRandomMatchCounter();
 
-        List<StudentPreferenceDTO> shuffledStudents = new ArrayList<>(request.getStudentPreferences());
-        Collections.shuffle(shuffledStudents);
+            List<AssignmentDTO> assignments = new ArrayList<>();
+            Map<String, Integer> courseAssignmentCounts = new HashMap<>();
+            Map<String, Integer> courseCapacities = request.getCourses().stream()
+                    .collect(Collectors.toMap(CourseCapacityDTO::getCourseCode, CourseCapacityDTO::getCapacity));
 
-        for (StudentPreferenceDTO student : shuffledStudents) {
-            boolean assigned = false;
+            courseAssignmentCounts = request.getCourses().stream()
+                    .collect(Collectors.toMap(CourseCapacityDTO::getCourseCode, c -> 0));
 
-            List<String> availableCourses = new ArrayList<>(courseCapacities.keySet());
-            Collections.shuffle(availableCourses);
+            List<StudentPreferenceDTO> shuffledStudents = new ArrayList<>(request.getStudentPreferences());
+            Collections.shuffle(shuffledStudents);
 
-            for (String courseCode : availableCourses) {
-                Integer currentCount = courseAssignmentCounts.get(courseCode);
+            for (StudentPreferenceDTO student : shuffledStudents) {
+                boolean assigned = false;
+
+                List<String> availableCourses = new ArrayList<>(courseCapacities.keySet());
+                Collections.shuffle(availableCourses);
+
+                for (String courseCode : availableCourses) {
+                    Integer currentCount = courseAssignmentCounts.get(courseCode);
+                    Integer capacity = courseCapacities.get(courseCode);
+
+                    if (currentCount < capacity) {
+                        Integer preferenceRank = student.getPreferredCourses().indexOf(courseCode);
+                        if (preferenceRank == -1) {
+                            preferenceRank = null;
+                        }
+
+                        Double studentScore = calculateStudentScore(student, courseCode, request.getInstructorPreferences());
+
+                        assignments.add(AssignmentDTO.builder()
+                                .studentCode(student.getStudentCode())
+                                .courseCode(courseCode)
+                                .preferenceRank(preferenceRank)
+                                .studentScore(studentScore)
+                                .build());
+
+                        courseAssignmentCounts.put(courseCode, currentCount + 1);
+                        assigned = true;
+                        break;
+                    }
+                }
+
+                if (!assigned) {
+                    log.warn("Could not assign student {}", student.getStudentCode());
+                }
+            }
+
+            MatchingStatisticsDTO statistics = calculateStatistics(
+                    request.getStudentPreferences().size(),
+                    assignments,
+                    courseAssignmentCounts
+            );
+
+            long duration = System.nanoTime() - startTime;
+            metricsService.recordRandomMatchTime(duration, TimeUnit.NANOSECONDS);
+
+            log.info("Random matching completed: {} students assigned out of {} in {}ms",
+                    statistics.getAssignedStudents(),
+                    statistics.getTotalStudents(),
+                    TimeUnit.NANOSECONDS.toMillis(duration));
+
+            return MatchingResponseDTO.builder()
+                    .assignments(assignments)
+                    .statistics(statistics)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error during random matching execution", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Stable matching algorithm based on Gale-Shapley
+     */
+    public MatchingResponseDTO createStableMatching(MatchingRequestDTO request) {
+        long startTime = System.nanoTime();
+
+        try {
+            log.info("Starting stable matching for {} students and {} courses",
+                    request.getStudentPreferences().size(),
+                    request.getCourses().size());
+
+            metricsService.incrementStableMatchCounter();
+
+            Map<String, Integer> courseCapacities = request.getCourses().stream()
+                    .collect(Collectors.toMap(CourseCapacityDTO::getCourseCode, CourseCapacityDTO::getCapacity));
+
+            Map<String, List<StudentPreferenceDTO>> courseAssignments = new HashMap<>();
+            request.getCourses().forEach(c -> courseAssignments.put(c.getCourseCode(), new ArrayList<>()));
+
+            Map<String, Map<String, Double>> studentScores = new HashMap<>();
+            for (StudentPreferenceDTO student : request.getStudentPreferences()) {
+                Map<String, Double> scores = new HashMap<>();
+                for (String courseCode : courseCapacities.keySet()) {
+                    scores.put(courseCode, calculateStudentScore(student, courseCode, request.getInstructorPreferences()));
+                }
+                studentScores.put(student.getStudentCode(), scores);
+            }
+
+            Queue<StudentPreferenceDTO> freeStudents = new LinkedList<>(request.getStudentPreferences());
+            Map<String, Integer> studentProposalIndex = new HashMap<>();
+            request.getStudentPreferences().forEach(s -> studentProposalIndex.put(s.getStudentCode(), 0));
+
+            while (!freeStudents.isEmpty()) {
+                StudentPreferenceDTO student = freeStudents.poll();
+                Integer proposalIndex = studentProposalIndex.get(student.getStudentCode());
+
+                if (proposalIndex >= student.getPreferredCourses().size()) {
+                    continue;
+                }
+
+                String courseCode = student.getPreferredCourses().get(proposalIndex);
+                studentProposalIndex.put(student.getStudentCode(), proposalIndex + 1);
+
+                List<StudentPreferenceDTO> currentAssignments = courseAssignments.get(courseCode);
                 Integer capacity = courseCapacities.get(courseCode);
 
-                if (currentCount < capacity) {
-                    Integer preferenceRank = student.getPreferredCourses().indexOf(courseCode);
-                    if (preferenceRank == -1) {
-                        preferenceRank = null;
-                    }
+                if (currentAssignments.size() < capacity) {
+                    currentAssignments.add(student);
+                } else {
+                    StudentPreferenceDTO worstStudent = findWorstStudent(currentAssignments, courseCode, studentScores);
+                    Double studentScore = studentScores.get(student.getStudentCode()).get(courseCode);
+                    Double worstScore = studentScores.get(worstStudent.getStudentCode()).get(courseCode);
 
-                    Double studentScore = calculateStudentScore(student, courseCode, request.getInstructorPreferences());
+                    if (studentScore > worstScore) {
+                        currentAssignments.remove(worstStudent);
+                        currentAssignments.add(student);
+                        freeStudents.add(worstStudent);
+                    } else {
+                        freeStudents.add(student);
+                    }
+                }
+            }
+
+            List<AssignmentDTO> assignments = new ArrayList<>();
+            Map<String, Integer> courseAssignmentCounts = new HashMap<>();
+
+            for (Map.Entry<String, List<StudentPreferenceDTO>> entry : courseAssignments.entrySet()) {
+                String courseCode = entry.getKey();
+                List<StudentPreferenceDTO> students = entry.getValue();
+                courseAssignmentCounts.put(courseCode, students.size());
+
+                for (StudentPreferenceDTO student : students) {
+                    Integer preferenceRank = student.getPreferredCourses().indexOf(courseCode);
+                    Double studentScore = studentScores.get(student.getStudentCode()).get(courseCode);
 
                     assignments.add(AssignmentDTO.builder()
                             .studentCode(student.getStudentCode())
@@ -49,124 +183,32 @@ public class MatchingService {
                             .preferenceRank(preferenceRank)
                             .studentScore(studentScore)
                             .build());
-
-                    courseAssignmentCounts.put(courseCode, currentCount + 1);
-                    assigned = true;
-                    break;
                 }
             }
 
-            if (!assigned) {
-                log.warn("Could not assign student {}", student.getStudentCode());
-            }
+            MatchingStatisticsDTO statistics = calculateStatistics(
+                    request.getStudentPreferences().size(),
+                    assignments,
+                    courseAssignmentCounts
+            );
+
+            long duration = System.nanoTime() - startTime;
+            metricsService.recordStableMatchTime(duration, TimeUnit.NANOSECONDS);
+
+            log.info("Stable matching completed: {} students assigned out of {} in {}ms",
+                    statistics.getAssignedStudents(),
+                    statistics.getTotalStudents(),
+                    TimeUnit.NANOSECONDS.toMillis(duration));
+
+            return MatchingResponseDTO.builder()
+                    .assignments(assignments)
+                    .statistics(statistics)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error during stable matching execution", e);
+            throw e;
         }
-
-        MatchingStatisticsDTO statistics = calculateStatistics(
-                request.getStudentPreferences().size(),
-                assignments,
-                courseAssignmentCounts
-        );
-
-        log.info("Random matching completed: {} students assigned out of {}",
-                statistics.getAssignedStudents(),
-                statistics.getTotalStudents());
-
-        return MatchingResponseDTO.builder()
-                .assignments(assignments)
-                .statistics(statistics)
-                .build();
-    }
-
-    public MatchingResponseDTO createStableMatching(MatchingRequestDTO request) {
-        log.info("Starting stable matching for {} students and {} courses",
-                request.getStudentPreferences().size(),
-                request.getCourses().size());
-
-        Map<String, Integer> courseCapacities = request.getCourses().stream()
-                .collect(Collectors.toMap(CourseCapacityDTO::getCourseCode, CourseCapacityDTO::getCapacity));
-
-        Map<String, List<StudentPreferenceDTO>> courseAssignments = new HashMap<>();
-        request.getCourses().forEach(c -> courseAssignments.put(c.getCourseCode(), new ArrayList<>()));
-
-        Map<String, Map<String, Double>> studentScores = new HashMap<>();
-        for (StudentPreferenceDTO student : request.getStudentPreferences()) {
-            Map<String, Double> scores = new HashMap<>();
-            for (String courseCode : courseCapacities.keySet()) {
-                scores.put(courseCode, calculateStudentScore(student, courseCode, request.getInstructorPreferences()));
-            }
-            studentScores.put(student.getStudentCode(), scores);
-        }
-
-        Queue<StudentPreferenceDTO> freeStudents = new LinkedList<>(request.getStudentPreferences());
-        Map<String, Integer> studentProposalIndex = new HashMap<>();
-        request.getStudentPreferences().forEach(s -> studentProposalIndex.put(s.getStudentCode(), 0));
-
-        while (!freeStudents.isEmpty()) {
-            StudentPreferenceDTO student = freeStudents.poll();
-            Integer proposalIndex = studentProposalIndex.get(student.getStudentCode());
-
-            if (proposalIndex >= student.getPreferredCourses().size()) {
-                continue;
-            }
-
-            String courseCode = student.getPreferredCourses().get(proposalIndex);
-            studentProposalIndex.put(student.getStudentCode(), proposalIndex + 1);
-
-            List<StudentPreferenceDTO> currentAssignments = courseAssignments.get(courseCode);
-            Integer capacity = courseCapacities.get(courseCode);
-
-            if (currentAssignments.size() < capacity) {
-                currentAssignments.add(student);
-            } else {
-                StudentPreferenceDTO worstStudent = findWorstStudent(currentAssignments, courseCode, studentScores);
-                Double studentScore = studentScores.get(student.getStudentCode()).get(courseCode);
-                Double worstScore = studentScores.get(worstStudent.getStudentCode()).get(courseCode);
-
-                if (studentScore > worstScore) {
-                    currentAssignments.remove(worstStudent);
-                    currentAssignments.add(student);
-                    freeStudents.add(worstStudent);
-                } else {
-                    freeStudents.add(student);
-                }
-            }
-        }
-
-        List<AssignmentDTO> assignments = new ArrayList<>();
-        Map<String, Integer> courseAssignmentCounts = new HashMap<>();
-
-        for (Map.Entry<String, List<StudentPreferenceDTO>> entry : courseAssignments.entrySet()) {
-            String courseCode = entry.getKey();
-            List<StudentPreferenceDTO> students = entry.getValue();
-            courseAssignmentCounts.put(courseCode, students.size());
-
-            for (StudentPreferenceDTO student : students) {
-                Integer preferenceRank = student.getPreferredCourses().indexOf(courseCode);
-                Double studentScore = studentScores.get(student.getStudentCode()).get(courseCode);
-
-                assignments.add(AssignmentDTO.builder()
-                        .studentCode(student.getStudentCode())
-                        .courseCode(courseCode)
-                        .preferenceRank(preferenceRank)
-                        .studentScore(studentScore)
-                        .build());
-            }
-        }
-
-        MatchingStatisticsDTO statistics = calculateStatistics(
-                request.getStudentPreferences().size(),
-                assignments,
-                courseAssignmentCounts
-        );
-
-        log.info("Stable matching completed: {} students assigned out of {}",
-                statistics.getAssignedStudents(),
-                statistics.getTotalStudents());
-
-        return MatchingResponseDTO.builder()
-                .assignments(assignments)
-                .statistics(statistics)
-                .build();
     }
 
     private StudentPreferenceDTO findWorstStudent(List<StudentPreferenceDTO> students,

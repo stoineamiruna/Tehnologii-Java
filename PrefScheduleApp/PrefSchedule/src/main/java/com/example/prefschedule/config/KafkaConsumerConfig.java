@@ -128,4 +128,12 @@ public class KafkaConsumerConfig {
     -verificarea mesajelor din topic:
     .\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic grades_topic --from-beginning
     .\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic grades_topic.DLT --from-beginning
+
+    .\kafka-storage.bat random-uuid
+    .\kafka-storage.bat format -t EIkxYBGjS1ShvAnQmR2BsA -c ..\..\config\server.properties --standalone
+    .\kafka-topics.bat --create --topic raw-grades-topic --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+.\kafka-topics.bat --create --topic enriched-grades-topic --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+.\kafka-topics.bat --create --topic grades_topic --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+.\kafka-topics.bat --create --topic grades_topic.DLT --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+
  */
