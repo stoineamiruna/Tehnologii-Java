@@ -126,3 +126,35 @@ public class MatchingController {
         return ResponseEntity.noContent().build();
     }
 }
+
+/*
+{
+  "studentPreferences": [
+    {
+      "studentCode": "STU001",
+      "preferredCourses": ["CO1", "CO2"],
+      "courseGrades": {"MATH": 9.5, "OOP": 8.0}
+    },
+    {
+      "studentCode": "STU002",
+      "preferredCourses": ["CO2", "CO1"],
+      "courseGrades": {"MATH": 8.0, "OOP": 9.0}
+    }
+  ],
+  "courses": [
+    {"courseCode": "CO1", "capacity": 1},
+    {"courseCode": "CO2", "capacity": 1}
+  ],
+  "instructorPreferences": [
+    {
+      "courseCode": "CO1",
+      "gradeWeights": {"MATH": 1.0}
+    },
+    {
+      "courseCode": "CO2",
+      "gradeWeights": {"OOP": 1.0}
+    }
+  ]
+}
+http://localhost:8084/api/matching/stable
+* */

@@ -1,6 +1,29 @@
+spring:
+  application:
+    name: prefschedule
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+server:
+  port: 8080
+
+# Eureka Client Configuration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    registerWithEureka: true
+    fetchRegistry: true
+  instance:
+    preferIpAddress: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# Update StableMatch service URL to use service name
 stablematch:
   service:
-    url: http://localhost:8084
+    url: http://stablematch  # Use service name instead of localhost:8084
+    #url: http://localhost:8084
 
 resilience4j:
   circuitbreaker:
@@ -66,10 +89,24 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,circuitbreakers,circuitbreakerevents,ratelimiters,bulkheads
+        include: health,metrics,circuitbreakers,circuitbreakerevents,ratelimiters,bulkheads,prometheus
   endpoint:
     health:
       show-details: always
+    metrics:
+      access:
+    prometheus:
+      access: unrestricted
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 10ms,50ms,100ms,200ms,500ms,1s,2s,5s
+  prometheus:
+    metrics:
+      export:
+        enabled: true
   health:
     circuitbreakers:
       enabled: true
