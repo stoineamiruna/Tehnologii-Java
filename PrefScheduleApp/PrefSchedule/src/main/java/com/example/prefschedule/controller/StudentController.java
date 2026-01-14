@@ -78,7 +78,7 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR', 'ROLE_STUDENT')")
     public ResponseEntity<StudentResponseDTO> getStudentById(
             @PathVariable Long id,
             @RequestHeader(value = "If-None-Match", required = false) String ifNoneMatch) {

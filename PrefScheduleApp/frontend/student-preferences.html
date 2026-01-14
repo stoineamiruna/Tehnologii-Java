@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Preferences - PrefSchedule</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .navbar h2 {
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .info-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preferences-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .preference-item {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .preference-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .preference-content {
+            flex: 1;
+        }
+
+        .preference-order {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-right: 20px;
+        }
+
+        .course-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .course-code {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #2980b9;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        .btn-move {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-move:hover {
+            background: #7f8c8d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #667eea;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading i {
+            font-size: 2em;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="navbar">
+        <h2><i class="fas fa-heart"></i> My Course Preferences</h2>
+        <div>
+            <a href="index.html" class="btn btn-secondary">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+        </div>
+    </div>
+        <div id="alertContainer"></div>
+
+        <!-- Info Card -->
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> How It Works</h3>
+            <p>Rank your preferred optional courses in order of preference. The system will use these rankings along with your grades to allocate courses fairly.</p>
+            <p style="margin-top: 10px;"><strong>Tip:</strong> Put your most desired course first!</p>
+        </div>
+
+        <!-- Preferences Section -->
+        <div class="preferences-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="color: #667eea;">Your Preferences</h3>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Add Preference
+                </button>
+            </div>
+
+            <div id="loadingIndicator" class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Loading preferences...</p>
+            </div>
+
+            <div id="preferencesList"></div>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <i class="fas fa-heart"></i>
+                <h3>No Preferences Set</h3>
+                <p>Start by adding your first course preference</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Preference Modal -->
+    <div id="preferenceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Preference</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="preferenceForm">
+                <div class="form-group">
+                    <label>Course *</label>
+                    <select id="courseSelect" required>
+                        <option value="">Select a course...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Preference Order *</label>
+                    <select id="orderSelect" required>
+                        <option value="1">1st Choice</option>
+                        <option value="2">2nd Choice</option>
+                        <option value="3">3rd Choice</option>
+                        <option value="4">4th Choice</option>
+                        <option value="5">5th Choice</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-save"></i> Save Preference
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        let preferences = [];
+        let courses = [];
+        let editingPreferenceId = null;
+
+        const studentId = currentUser.studentId;
+
+        if (!authToken || !studentId) {
+            alert('Access denied! Only students can access this page.');
+            window.location.href = 'index.html';
+        }
+
+        let studentData = null;
+
+        async function loadStudent() {
+            try {
+                const response = await fetch(`${API_BASE}/api/students/${currentUser.studentId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (response.ok) {
+                    studentData = await response.json();
+                } else {
+                    showAlert('Failed to load student data', 'error');
+                }
+            } catch (err) {
+                showAlert('Connection error!', 'error');
+            }
+        }
+
+        // Load data on page load
+        window.addEventListener('load', () => {
+            loadCourses();
+            loadPreferences();
+        });
+
+        // Load courses
+        async function loadCourses() {
+            try {
+                const response = await fetch(`${API_BASE}/api/courses/student/${studentId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    courses = await response.json();
+                    console.info('Courses loaded:', courses.length);
+                } else {
+                    showAlert('Failed to load courses', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        }
+
+
+        // Load preferences
+        async function loadPreferences() {
+            try {
+                const response = await fetch(`${API_BASE}/api/preferences/${studentId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    preferences = await response.json();
+                    preferences.sort((a, b) => a.preferenceOrder - b.preferenceOrder);
+                    renderPreferences();
+                } else if (response.status === 401) {
+                    alert('Session expired. Please login again.');
+                    window.location.href = 'index.html';
+                } else {
+                    showAlert('Failed to load preferences', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        }
+
+        // Render preferences
+        function renderPreferences() {
+            const container = document.getElementById('preferencesList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (preferences.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            container.innerHTML = preferences.map((pref, index) => `
+                <div class="preference-item">
+                    <div class="preference-order">${pref.preferenceOrder}</div>
+                    <div class="preference-content">
+                        <div class="course-name">${pref.courseName || 'Course'}</div>
+                        <div class="course-code">Code: ${pref.courseCode || pref.courseId}</div>
+                    </div>
+                    <div class="action-buttons">
+                        ${index > 0 ? `<button class="btn-icon btn-move" onclick="movePreference(${pref.id}, 'up')" title="Move up">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>` : ''}
+                        ${index < preferences.length - 1 ? `<button class="btn-icon btn-move" onclick="movePreference(${pref.id}, 'down')" title="Move down">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>` : ''}
+                        <button class="btn-icon btn-edit" onclick="editPreference(${pref.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="deletePreference(${pref.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Open add modal
+        async function openAddModal() {
+            editingPreferenceId = null;
+            document.getElementById('modalTitle').textContent = 'Add Preference';
+            document.getElementById('preferenceForm').reset();
+
+            const courseSelect = document.getElementById('courseSelect');
+            courseSelect.innerHTML = '<option value="">Select a course...</option>' +
+                courses.map(c => `<option value="${c.id}">${c.name} (${c.code})</option>`).join('');
+
+            document.getElementById('orderSelect').value = preferences.length + 1;
+            document.getElementById('preferenceModal').classList.add('active');
+        }
+
+
+
+        // Edit preference
+        function editPreference(id) {
+            const pref = preferences.find(p => p.id === id);
+            if (!pref) return;
+
+            editingPreferenceId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Preference';
+            
+            // Populate course select
+            const courseSelect = document.getElementById('courseSelect');
+            courseSelect.innerHTML = '<option value="">Select a course...</option>' +
+                courses.map(c => `<option value="${c.id}">${c.name} (${c.code})</option>`).join('');
+            
+            courseSelect.value = pref.courseId;
+            document.getElementById('orderSelect').value = pref.preferenceOrder;
+
+            document.getElementById('preferenceModal').classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('preferenceModal').classList.remove('active');
+            document.getElementById('preferenceForm').reset();
+            editingPreferenceId = null;
+        }
+
+        // Submit form
+        document.getElementById('preferenceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const preferenceData = {
+                studentId: studentId,
+                courseId: parseInt(document.getElementById('courseSelect').value),
+                preferenceOrder: parseInt(document.getElementById('orderSelect').value)
+            };
+
+            try {
+                let response;
+                if (editingPreferenceId) {
+                    response = await fetch(`${API_BASE}/api/preferences/${editingPreferenceId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(preferenceData)
+                    });
+                } else {
+                    response = await fetch(`${API_BASE}/api/preferences`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(preferenceData)
+                    });
+                }
+
+                if (response.ok) {
+                    showAlert(editingPreferenceId ? 'Preference updated!' : 'Preference added!', 'success');
+                    closeModal();
+                    loadPreferences();
+                } else {
+                    const error = await response.text();
+                    showAlert(error || 'Operation failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        });
+
+        // Delete preference
+        async function deletePreference(id) {
+            if (!confirm('Are you sure you want to delete this preference?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/preferences/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    showAlert('Preference deleted successfully', 'success');
+                    loadPreferences();
+                } else {
+                    showAlert('Failed to delete preference', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        }
+
+        // Move preference
+        async function movePreference(id, direction) {
+            const index = preferences.findIndex(p => p.id === id);
+            if (index === -1) return;
+
+            const targetIndex = direction === 'up' ? index - 1 : index + 1;
+            if (targetIndex < 0 || targetIndex >= preferences.length) return;
+
+            // Swap orders
+            const currentOrder = preferences[index].preferenceOrder;
+            const targetOrder = preferences[targetIndex].preferenceOrder;
+
+            // Update both preferences
+            await updatePreferenceOrder(preferences[index].id, targetOrder);
+            await updatePreferenceOrder(preferences[targetIndex].id, currentOrder);
+
+            loadPreferences();
+        }
+
+        async function updatePreferenceOrder(id, newOrder) {
+            const pref = preferences.find(p => p.id === id);
+            if (!pref) return;
+
+            const data = {
+                studentId: pref.studentId,
+                courseId: pref.courseId,
+                preferenceOrder: newOrder
+            };
+
+            await fetch(`${API_BASE}/api/preferences/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+        }
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Close modal on outside click
+        document.getElementById('preferenceModal').addEventListener('click', (e) => {
+            if (e.target.id === 'preferenceModal') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

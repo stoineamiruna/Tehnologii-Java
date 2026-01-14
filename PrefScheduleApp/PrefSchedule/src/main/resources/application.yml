@@ -22,7 +22,7 @@ eureka:
 # Update StableMatch service URL to use service name
 stablematch:
   service:
-    url: http://stablematch  # Use service name instead of localhost:8084
+    url: http://localhost:8084  # Use service name instead of localhost:8084
     #url: http://localhost:8084
 
 resilience4j:
