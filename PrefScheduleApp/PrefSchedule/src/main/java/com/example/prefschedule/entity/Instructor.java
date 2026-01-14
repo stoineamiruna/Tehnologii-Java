@@ -1,5 +1,6 @@
 package com.example.prefschedule.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -20,6 +21,7 @@ public class Instructor {
     private String email;
 
     @OneToMany(mappedBy = "instructor", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Course> courses = new ArrayList<>();
 
     public Instructor() {}

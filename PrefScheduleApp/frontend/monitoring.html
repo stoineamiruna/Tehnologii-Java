@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Monitoring - PrefSchedule</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            margin: 0 auto 20px auto; 
+            max-width: 1400px;        
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .navbar h2 {
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .section h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .patterns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .pattern-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .pattern-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .pattern-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .pattern-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-closed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-open {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-half-open {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .metric-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .metric-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .pattern-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 0.9em;
+            flex: 1;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading i {
+            font-size: 2em;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card i {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card h4 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h2><i class="fas fa-heart-pulse"></i> System Monitoring</h2>
+        <div class="nav-buttons">
+            <button class="btn btn-primary" onclick="refreshAll()">
+                <i class="fas fa-sync"></i> Refresh
+            </button>
+            <a href="index.html" class="btn btn-secondary">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alertContainer"></div>
+
+        <!-- Overview Stats -->
+        <div class="section">
+            <h3><i class="fas fa-chart-line"></i> System Overview</h3>
+            <div class="stats-overview">
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <h4 id="totalHealthy">0</h4>
+                    <p>Healthy Patterns</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4 id="totalIssues">0</h4>
+                    <p>Issues Detected</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <h4 id="lastUpdate">-</h4>
+                    <p>Last Update</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Circuit Breakers -->
+        <div class="section">
+            <h3><i class="fas fa-shield-alt"></i> Circuit Breakers</h3>
+            <div id="circuitBreakersLoading" class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Loading circuit breakers...</p>
+            </div>
+            <div id="circuitBreakersGrid" class="patterns-grid" style="display: none;"></div>
+        </div>
+
+        <!-- Rate Limiters -->
+        <div class="section">
+            <h3><i class="fas fa-tachometer-alt"></i> Rate Limiters</h3>
+            <div id="rateLimitersLoading" class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Loading rate limiters...</p>
+            </div>
+            <div id="rateLimitersGrid" class="patterns-grid" style="display: none;"></div>
+        </div>
+
+        <!-- Bulkheads -->
+        <div class="section">
+            <h3><i class="fas fa-layer-group"></i> Bulkheads</h3>
+            <div id="bulkheadsLoading" class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Loading bulkheads...</p>
+            </div>
+            <div id="bulkheadsGrid" class="patterns-grid" style="display: none;"></div>
+        </div>
+
+        <!-- Actions -->
+        <div class="section">
+            <h3><i class="fas fa-tools"></i> System Actions</h3>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <button class="btn btn-warning" onclick="resetAll()">
+                    <i class="fas fa-redo"></i> Reset All Patterns
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+
+        // Check authentication
+        if (!authToken) {
+            window.location.href = 'index.html';
+        }
+
+        const roles = currentUser.roles || [];
+        if (!roles.includes('ROLE_ADMIN')) {
+            alert('Access denied! Only admins can access this page.');
+            window.location.href = 'index.html';
+        }
+
+        // Auto-refresh every 10 seconds
+        let refreshInterval;
+
+        window.addEventListener('load', () => {
+            refreshAll();
+            refreshInterval = setInterval(refreshAll, 10000);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            clearInterval(refreshInterval);
+        });
+
+        // Refresh all data
+        async function refreshAll() {
+            updateLastUpdate();
+            await loadAllStates();
+        }
+
+        // Load all resilience states
+        async function loadAllStates() {
+            try {
+                const response = await fetch(`${API_BASE}/api/resilience/monitor/all`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    processAllStates(data);
+                } else {
+                    showAlert('Failed to load monitoring data', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        }
+
+        // Process all states
+        function processAllStates(data) {
+            const circuitBreakers = {};
+            const rateLimiters = {};
+            const bulkheads = {};
+
+            Object.keys(data).forEach(key => {
+                if (key.startsWith('circuitBreaker_')) {
+                    const name = key.replace('circuitBreaker_', '');
+                    circuitBreakers[name] = data[key];
+                } else if (key.startsWith('rateLimiter_')) {
+                    const name = key.replace('rateLimiter_', '');
+                    rateLimiters[name] = data[key];
+                } else if (key.startsWith('bulkhead_')) {
+                    const name = key.replace('bulkhead_', '');
+                    bulkheads[name] = data[key];
+                }
+            });
+
+            renderCircuitBreakers(circuitBreakers);
+            renderRateLimiters(rateLimiters);
+            renderBulkheads(bulkheads);
+            updateOverview(circuitBreakers, rateLimiters, bulkheads);
+        }
+
+        // Render circuit breakers
+        function renderCircuitBreakers(breakers) {
+            const grid = document.getElementById('circuitBreakersGrid');
+            const loading = document.getElementById('circuitBreakersLoading');
+
+            loading.style.display = 'none';
+            grid.style.display = 'grid';
+
+            grid.innerHTML = Object.entries(breakers).map(([name, data]) => {
+                const state = data.state;
+                const statusClass = state === 'CLOSED' ? 'status-closed' : 
+                                  state === 'OPEN' ? 'status-open' : 'status-half-open';
+
+                return `
+                    <div class="pattern-card">
+                        <div class="pattern-header">
+                            <div class="pattern-title">${name}</div>
+                            <span class="status-badge ${statusClass}">${state}</span>
+                        </div>
+                        <div class="metric-grid">
+                            <div class="metric-item">
+                                <div class="metric-label">Failure Rate</div>
+                                <div class="metric-value">${data.failureRate?.toFixed(2) || 0}%</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Success Calls</div>
+                                <div class="metric-value">${data.successfulCalls || 0}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Failed Calls</div>
+                                <div class="metric-value">${data.failedCalls || 0}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">State</div>
+                                <div class="metric-value">${state}</div>
+                            </div>
+                        </div>
+                        <div class="pattern-actions">
+                            <button class="btn btn-sm btn-success" onclick="transitionToClosed('${name}')">
+                                <i class="fas fa-lock-open"></i> Close
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="transitionToOpen('${name}')">
+                                <i class="fas fa-lock"></i> Open
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render rate limiters
+        function renderRateLimiters(limiters) {
+            const grid = document.getElementById('rateLimitersGrid');
+            const loading = document.getElementById('rateLimitersLoading');
+
+            loading.style.display = 'none';
+            grid.style.display = 'grid';
+
+            grid.innerHTML = Object.entries(limiters).map(([name, data]) => {
+                const availablePercent = 100; // Placeholder
+                return `
+                    <div class="pattern-card">
+                        <div class="pattern-header">
+                            <div class="pattern-title">${name}</div>
+                            <span class="status-badge status-closed">Active</span>
+                        </div>
+                        <div class="metric-grid">
+                            <div class="metric-item">
+                                <div class="metric-label">Available Permits</div>
+                                <div class="metric-value">${data.availablePermissions || 0}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Waiting Threads</div>
+                                <div class="metric-value">${data.waitingThreads || 0}</div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${availablePercent}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render bulkheads
+        function renderBulkheads(bulkheads) {
+            const grid = document.getElementById('bulkheadsGrid');
+            const loading = document.getElementById('bulkheadsLoading');
+
+            loading.style.display = 'none';
+            grid.style.display = 'grid';
+
+            grid.innerHTML = Object.entries(bulkheads).map(([name, data]) => {
+                const usagePercent = data.maxCalls > 0 
+                    ? ((data.maxCalls - data.availableCalls) / data.maxCalls * 100).toFixed(1)
+                    : 0;
+
+                return `
+                    <div class="pattern-card">
+                        <div class="pattern-header">
+                            <div class="pattern-title">${name}</div>
+                            <span class="status-badge status-closed">${usagePercent}% Used</span>
+                        </div>
+                        <div class="metric-grid">
+                            <div class="metric-item">
+                                <div class="metric-label">Available Calls</div>
+                                <div class="metric-value">${data.availableCalls || 0}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">Max Calls</div>
+                                <div class="metric-value">${data.maxCalls || 0}</div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${usagePercent}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update overview stats
+        function updateOverview(breakers, limiters, bulkheads) {
+            const totalPatterns = Object.keys(breakers).length + 
+                                Object.keys(limiters).length + 
+                                Object.keys(bulkheads).length;
+
+            const openBreakers = Object.values(breakers).filter(b => b.state === 'OPEN').length;
+
+            document.getElementById('totalHealthy').textContent = totalPatterns - openBreakers;
+            document.getElementById('totalIssues').textContent = openBreakers;
+        }
+
+        // Update last update time
+        function updateLastUpdate() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            document.getElementById('lastUpdate').textContent = timeStr;
+        }
+
+        // Transition circuit breaker to closed
+        async function transitionToClosed(name) {
+            try {
+                const response = await fetch(
+                    `${API_BASE}/api/resilience/monitor/circuit-breaker/${name}/transition-to-closed`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    showAlert(`Circuit breaker ${name} transitioned to CLOSED`, 'success');
+                    refreshAll();
+                } else {
+                    showAlert('Operation failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        }
+
+        // Transition circuit breaker to open
+        async function transitionToOpen(name) {
+            if (!confirm(`Are you sure you want to open circuit breaker ${name}?`)) return;
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/api/resilience/monitor/circuit-breaker/${name}/transition-to-open`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    showAlert(`Circuit breaker ${name} transitioned to OPEN`, 'info');
+                    refreshAll();
+                } else {
+                    showAlert('Operation failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        }
+
+        // Reset all patterns
+        async function resetAll() {
+            if (!confirm('Are you sure you want to reset all resilience patterns?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/resilience/monitor/reset-all`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    showAlert('All patterns reset successfully!', 'success');
+                    refreshAll();
+                } else {
+                    showAlert('Reset failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

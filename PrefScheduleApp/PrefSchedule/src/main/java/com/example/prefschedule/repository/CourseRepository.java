@@ -27,9 +27,14 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     """)
     Boolean isCompulsory(@Param("courseCode") String courseCode);
     Optional<Course> findByCode(String code);
+    List<Course> findByNameContainingIgnoreCase(String name);
     List<Course> findByPackId(Long packId);
 
     @Query("SELECT c FROM Course c WHERE c.pack.id = :packId AND c.type = 'OPTIONAL'")
     List<Course> findOptionalCoursesByPackId(@Param("packId") Long packId);
+    @Query("SELECT c FROM Course c WHERE c.pack.year = :year")
+    List<Course> findByPackYear(@Param("year") int year);
+
+    List<Course> findByInstructorId(Long instructorId);
 
 }

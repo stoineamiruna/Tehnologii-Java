@@ -1,4 +1,5 @@
 package com.example.prefschedule.entity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;
 import lombok.Setter;
 import jakarta.persistence.*;
@@ -22,10 +23,12 @@ public class Course {
 
     @ManyToOne
     @JoinColumn(name = "instructor_id")
+    @JsonBackReference
     private Instructor instructor;
 
     @ManyToOne
     @JoinColumn(name = "pack_id")
+    @JsonBackReference
     private Pack pack;
 
     public Course() {}

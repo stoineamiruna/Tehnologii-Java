@@ -1,5 +1,6 @@
 package com.example.prefschedule.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,7 @@ public class InstructorCoursePreference {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     @ToString.Exclude
+    @JsonBackReference
     private Course course;
 
     @Column(name = "compulsory_course_abbr", nullable = false)
