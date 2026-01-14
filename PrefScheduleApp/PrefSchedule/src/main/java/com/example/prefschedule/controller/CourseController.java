@@ -12,6 +12,9 @@ import com.example.prefschedule.repository.InstructorRepository;
 import com.example.prefschedule.repository.PackRepository;
 import com.example.prefschedule.repository.StudentRepository;
 import com.example.prefschedule.service.CourseService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,13 +47,21 @@ public class CourseController {
         this.instructorRepository = instructorRepository;
         this.packRepository = packRepository;
     }
-
+    @Operation(summary = "Get all courses", description = "Returns a list of all courses available in the system.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of courses retrieved successfully")
+    })
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR','ROLE_STUDENT')")
     public List<CourseResponseDTO> getAllCourses() {
         return courseService.getAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
+    @Operation(summary = "Get course by ID", description = "Retrieve a single course by its unique ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Course retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Course not found")
+    })
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR','ROLE_STUDENT')")
     public ResponseEntity<CourseResponseDTO> getCourseById(@PathVariable Long id) {
@@ -59,6 +70,12 @@ public class CourseController {
         return ResponseEntity.ok(toDTO(course));
     }
 
+    @Operation(summary = "Create a new course", description = "Creates a new course. Requires ROLE_ADMIN or ROLE_INSTRUCTOR authority.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Course created successfully"),
+            @ApiResponse(responseCode = "404", description = "Instructor or Pack not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR')")
     public ResponseEntity<CourseResponseDTO> createCourse(@Valid @RequestBody CourseRequestDTO dto) {
@@ -86,6 +103,12 @@ public class CourseController {
         return ResponseEntity.ok(toDTO(saved));
     }
 
+    @Operation(summary = "Update an existing course", description = "Updates a course by ID. Requires ROLE_ADMIN or ROLE_INSTRUCTOR authority.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Course updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Course, Instructor, or Pack not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR')")
     public ResponseEntity<CourseResponseDTO> updateCourse(
@@ -121,13 +144,22 @@ public class CourseController {
         Course saved = courseService.save(existing);
         return ResponseEntity.ok(toDTO(saved));
     }
-
+    @Operation(summary = "Delete a course", description = "Deletes a course by ID. Requires ROLE_ADMIN authority.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Course deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Course not found")
+    })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteCourse(@PathVariable Long id) {
         courseService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+    @Operation(summary = "Get courses for a student", description = "Returns courses available for a student based on their year.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Courses retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Student not found")
+    })
     @GetMapping("/student/{studentId}")
     public ResponseEntity<List<Course>> getCoursesForStudent(@PathVariable Long studentId) {
         Optional<Student> studentOpt = studentRepository.findById(studentId);
@@ -140,6 +172,11 @@ public class CourseController {
 
         return ResponseEntity.ok(courses);
     }
+    @Operation(summary = "Get courses by instructor", description = "Returns all courses taught by a specific instructor.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Courses retrieved successfully"),
+            @ApiResponse(responseCode = "204", description = "No courses found for this instructor")
+    })
     @GetMapping("/instructor/{instructorId}")
     public ResponseEntity<List<Course>> getCoursesByInstructor(
             @PathVariable Long instructorId) {

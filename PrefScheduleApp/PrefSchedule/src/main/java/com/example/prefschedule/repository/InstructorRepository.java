@@ -17,4 +17,6 @@ public interface InstructorRepository extends JpaRepository<Instructor, Long> {
     @Transactional
     @Query("UPDATE Instructor i SET i.name = :name WHERE i.id = :id")
     void updateName(Long id, String name);
+
+    boolean existsByEmail(String email);
 }

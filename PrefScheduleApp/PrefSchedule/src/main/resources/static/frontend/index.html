@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrefSchedule - Course Allocation Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .auth-section {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: #f0f0f0;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input, 
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info h2 {
+            font-size: 1.5em;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .nav-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .nav-card i {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .nav-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .nav-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-graduation-cap"></i> PrefSchedule</h1>
+            <p>Intelligent Optional Course Allocation Platform</p>
+        </div>
+
+        <div class="content">
+            <!-- Auth Section -->
+            <div class="auth-section" id="authSection">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="switchTab('login')">Login</button>
+                    <button class="tab-button" onclick="switchTab('register')">Register</button>
+                </div>
+
+                <div id="alertBox" class="alert"></div>
+
+                <!-- Login Form -->
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="loginUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" class="hidden">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="regUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="regPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="regFullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="regEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="regRole" onchange="toggleYearField()">
+                            <option value="ROLE_STUDENT">Student</option>
+                            <option value="ROLE_INSTRUCTOR">Instructor</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="yearField">
+                        <label>Year of Study</label>
+                        <select id="regYear">
+                            <option value="1">Year 1</option>
+                            <option value="2">Year 2</option>
+                            <option value="3">Year 3</option>
+                            <option value="4">Year 4</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="dashboard" id="dashboard">
+                <div class="user-info">
+                    <div>
+                        <h2 id="welcomeText">Welcome!</h2>
+                        <p id="userRole"></p>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+
+                <div class="nav-grid" id="navGrid">
+                    <!-- Navigation cards will be inserted here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        let currentUser = null;
+        let authToken = null;
+
+        // Check if already logged in
+        window.addEventListener('load', () => {
+            const savedToken = localStorage.getItem('authToken');
+            const savedUser = localStorage.getItem('currentUser');
+            
+            if (savedToken && savedUser) {
+                authToken = savedToken;
+                currentUser = JSON.parse(savedUser);
+                showDashboard();
+            }
+        });
+
+        // Tab switching
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const buttons = document.querySelectorAll('.tab-button');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                buttons[0].classList.add('active');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                buttons[1].classList.add('active');
+            }
+            hideAlert();
+        }
+
+        // Toggle year field for students
+        function toggleYearField() {
+            const role = document.getElementById('regRole').value;
+            const yearField = document.getElementById('yearField');
+            yearField.style.display = role === 'ROLE_STUDENT' ? 'block' : 'none';
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.token;
+                    currentUser = data.user;
+                    
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    showAlert('Login successful!', 'success');
+                    setTimeout(showDashboard, 1000);
+                } else {
+                    const error = await response.text();
+                    showAlert(error || 'Login failed!', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        });
+
+        // Register
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                username: document.getElementById('regUsername').value,
+                password: document.getElementById('regPassword').value,
+                fullName: document.getElementById('regFullName').value,
+                email: document.getElementById('regEmail').value,
+                role: document.getElementById('regRole').value,
+                year: document.getElementById('regRole').value === 'ROLE_STUDENT' 
+                    ? parseInt(document.getElementById('regYear').value) 
+                    : null
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showAlert('Account created successfully! You can now login.', 'success');
+                    setTimeout(() => switchTab('login'), 2000);
+                } else {
+                    const error = await response.text();
+                    showAlert(error || 'Registration failed!', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        });
+
+        // Show dashboard
+        function showDashboard() {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            
+            document.getElementById('welcomeText').textContent = 
+                `Welcome, ${currentUser.fullName}!`;
+            document.getElementById('userRole').textContent = 
+                currentUser.roles.join(', ').replace(/ROLE_/g, '');
+
+            renderNavigation();
+        }
+
+        <!-- Render navigation based on role -->
+        function renderNavigation() {
+            const navGrid = document.getElementById('navGrid');
+            const roles = currentUser.roles;
+            console.log(currentUser);
+            let cards = [];
+
+
+            if (roles.includes('ROLE_ADMIN')) {
+                cards = [
+                    { icon: 'fa-users', title: 'Students', desc: 'Manage students', link: 'students.html' },
+                    { icon: 'fa-chalkboard-teacher', title: 'Instructors', desc: 'Manage instructors', link: 'instructors.html' },
+                    { icon: 'fa-book', title: 'Courses', desc: 'Manage courses', link: 'courses.html' },
+                    { icon: 'fa-box', title: 'Packs', desc: 'View course packs', link: 'packs.html' },
+                    { icon: 'fa-chart-bar', title: 'Grades', desc: 'Upload & view grades', link: 'grades.html' },
+                    { icon: 'fa-sitemap', title: 'Matching', desc: 'Run allocation algorithm', link: 'matching.html' },
+                    { icon: 'fa-heart-pulse', title: 'Monitoring', desc: 'Service status', link: 'monitoring.html' }
+                ];
+            } else if (roles.includes('ROLE_INSTRUCTOR')) {
+                cards = [
+                    { icon: 'fa-users', title: 'Students', desc: 'View students', link: 'students.html' },
+                    { icon: 'fa-chalkboard-teacher', title: 'Instructors', desc: 'View instructors', link: 'instructors.html' },
+                    { icon: 'fa-star', title: 'Course Preferences', desc: 'Set selection criteria', link: 'instructor-preferences.html' },
+                    { icon: 'fa-chart-bar', title: 'Grades', desc: 'Upload grades', link: 'grades.html' },
+                    { icon: 'fa-sitemap', title: 'Matching', desc: 'Run allocation', link: 'matching.html' }
+                ];
+            } else if (roles.includes('ROLE_STUDENT')) {
+                cards = [
+                    { icon: 'fa-heart', title: 'My Preferences', desc: 'Set preferred courses', link: 'student-preferences.html' },
+                    { icon: 'fa-book', title: 'Available Courses', desc: 'View optional courses', link: 'courses.html' }
+                ];
+            }
+
+            navGrid.innerHTML = cards.map(card => `
+                <a href="${card.link}" class="nav-card">
+                    <i class="fas ${card.icon}"></i>
+                    <h3>${card.title}</h3>
+                    <p>${card.desc}</p>
+                </a>
+            `).join('');
+        }
+
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            authToken = null;
+            currentUser = null;
+            
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('loginForm').reset();
+        }
+
+        // Alert helpers
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+        }
+
+        function hideAlert() {
+            document.getElementById('alertBox').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

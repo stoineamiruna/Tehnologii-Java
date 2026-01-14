@@ -4,6 +4,9 @@ import com.example.prefschedule.dto.*;
 import com.example.prefschedule.entity.*;
 import com.example.prefschedule.repository.*;
 import com.example.prefschedule.security.JwtUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
@@ -41,6 +44,12 @@ public class AuthController {
         this.uds = uds;
     }
 
+    @Operation(summary = "Register a new user", description = "Registers a new user with a given role (student or instructor). For students, 'year' is required.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User registered successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input or username already exists"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO dto) {
         if (userRepo.existsByUsername(dto.getUsername())) {
@@ -89,6 +98,12 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Login user", description = "Authenticates a user and returns a JWT token along with user details.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Login successful"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO request) {
         try {

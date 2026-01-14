@@ -20,4 +20,8 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     void updateEmail(Long id, String email);
 
     Optional<Student> findByCode(String code);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByCode(String code);
 }

@@ -4,6 +4,9 @@ import com.example.prefschedule.dto.PackRequestDTO;
 import com.example.prefschedule.dto.PackResponseDTO;
 import com.example.prefschedule.entity.Pack;
 import com.example.prefschedule.repository.PackRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,10 @@ public class PackController {
 
     private final PackRepository packRepository;
 
+    @Operation(summary = "Get all packs", description = "Retrieves a list of all packs.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of packs retrieved successfully")
+    })
     @GetMapping
     public ResponseEntity<List<PackResponseDTO>> getAllPacks() {
         List<PackResponseDTO> packs = packRepository.findAll()
@@ -28,6 +35,11 @@ public class PackController {
         return ResponseEntity.ok(packs);
     }
 
+    @Operation(summary = "Get pack by ID", description = "Retrieves a single pack by its unique ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pack retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Pack not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<PackResponseDTO> getPackById(@PathVariable Long id) {
         return packRepository.findById(id)
@@ -36,6 +48,11 @@ public class PackController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Create a new pack", description = "Creates a new pack with year, semester, and name.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pack created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     @PostMapping
     public ResponseEntity<PackResponseDTO> createPack(@Valid @RequestBody PackRequestDTO request) {
         Pack pack = new Pack(request.getYear(), request.getSemester(), request.getName());
@@ -43,6 +60,12 @@ public class PackController {
         return ResponseEntity.ok(toResponseDto(saved));
     }
 
+    @Operation(summary = "Update an existing pack", description = "Updates a pack by ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pack updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Pack not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<PackResponseDTO> updatePack(@PathVariable Long id,
                                                       @Valid @RequestBody PackRequestDTO request) {
@@ -57,6 +80,11 @@ public class PackController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Delete a pack", description = "Deletes a pack by ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Pack deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Pack not found")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePack(@PathVariable Long id) {
         return packRepository.findById(id)

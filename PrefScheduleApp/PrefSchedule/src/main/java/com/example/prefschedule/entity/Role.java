@@ -3,7 +3,7 @@ package com.example.prefschedule.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
+@Entity @Data
 @Table(name = "roles")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Role {
