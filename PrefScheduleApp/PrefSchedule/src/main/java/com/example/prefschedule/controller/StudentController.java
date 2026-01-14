@@ -6,6 +6,9 @@ import com.example.prefschedule.entity.Student;
 import com.example.prefschedule.exception.ResourceNotFoundException;
 import com.example.prefschedule.mapper.StudentMapper;
 import com.example.prefschedule.service.StudentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,6 +30,10 @@ public class StudentController {
         this.mapper = mapper;
     }
 
+    @Operation(summary = "Get all students", description = "Retrieves a list of all students. Requires ROLE_ADMIN or ROLE_INSTRUCTOR.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of students retrieved successfully")
+    })
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR')")
     public List<StudentResponseDTO> getAllStudents() {
@@ -37,6 +44,11 @@ public class StudentController {
                 .collect(Collectors.toList());
     }
 
+    @Operation(summary = "Create a new student", description = "Creates a new student. Requires ROLE_ADMIN authority.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Student created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<StudentResponseDTO> createStudent(@Valid @RequestBody StudentRequestDTO dto) {
@@ -45,6 +57,11 @@ public class StudentController {
         return ResponseEntity.ok(mapper.toResponseDTO(saved));
     }
 
+    @Operation(summary = "Update student email", description = "Updates only the email of a student. Requires ROLE_ADMIN or ROLE_STUDENT authority.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Student email updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Student not found")
+    })
     @PatchMapping("/{id}/email")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_STUDENT')")
     public ResponseEntity<StudentResponseDTO> updateEmail(
@@ -59,6 +76,12 @@ public class StudentController {
         return ResponseEntity.ok(mapper.toResponseDTO(updated));
     }
 
+    @Operation(summary = "Update student details", description = "Updates the full student details by ID. Requires ROLE_ADMIN or ROLE_STUDENT authority.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Student updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Student not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_STUDENT')")
     public ResponseEntity<StudentResponseDTO> updateStudent(
@@ -70,6 +93,11 @@ public class StudentController {
         return ResponseEntity.ok(mapper.toResponseDTO(saved));
     }
 
+    @Operation(summary = "Delete student", description = "Deletes a student by ID. Requires ROLE_ADMIN authority.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Student deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Student not found")
+    })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
@@ -77,6 +105,12 @@ public class StudentController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Get student by ID", description = "Retrieves a student by ID. Returns an ETag for caching. Requires ROLE_ADMIN, ROLE_INSTRUCTOR, or ROLE_STUDENT.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Student retrieved successfully"),
+            @ApiResponse(responseCode = "304", description = "Student data not modified"),
+            @ApiResponse(responseCode = "404", description = "Student not found")
+    })
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_INSTRUCTOR', 'ROLE_STUDENT')")
     public ResponseEntity<StudentResponseDTO> getStudentById(

@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Preferences - PrefSchedule</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .navbar h2 {
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .info-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preferences-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .course-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .course-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .course-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .course-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .course-code {
+            color: #667eea;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .weights-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .weight-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .weight-item label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .weight-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .weight-input input {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .weight-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .weight-input .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .add-weight-btn {
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            color: #666;
+        }
+
+        .add-weight-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading i {
+            font-size: 2em;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="navbar">
+            <h2><i class="fas fa-star"></i> Instructor Course Preferences</h2>
+            <div>
+                <a href="index.html" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </div>
+        </div>
+        <div id="alertContainer"></div>
+
+        <!-- Info Card -->
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> Student Selection Criteria</h3>
+            <p>Set grade weights for each compulsory course to determine how students will be ranked for your optional courses. The system will calculate a weighted average based on your criteria.</p>
+            <p style="margin-top: 10px;"><strong>Example:</strong> If you set MATH: 0.6 and OOP: 0.4, a student with MATH=9 and OOP=8 would get a score of 8.6</p>
+        </div>
+
+        <!-- Preferences Section -->
+        <div class="preferences-section">
+            <div id="loadingIndicator" class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Loading courses...</p>
+            </div>
+
+            <div id="coursesList"></div>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <i class="fas fa-book"></i>
+                <h3>No Courses Available</h3>
+                <p>Contact an administrator to add courses</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Weight Modal -->
+    <div id="weightModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Grade Weight</h3>
+            </div>
+            <form id="weightForm">
+                <div class="form-group">
+                    <label>Course Code *</label>
+                    <input type="text" id="weightCourseCode" placeholder="e.g., MATH101" required>
+                </div>
+                <div class="form-group">
+                    <label>Weight (0-1) *</label>
+                    <input type="number" id="weightValue" step="0.01" min="0" max="1" placeholder="e.g., 0.5" required>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="closeWeightModal()">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        let courses = [];
+        let preferences = {};
+        let currentCourseId = null;
+
+        // Check authentication
+        if (!authToken) {
+            window.location.href = 'index.html';
+        }
+
+        const roles = currentUser.roles || [];
+        if (!roles.includes('ROLE_INSTRUCTOR') && !roles.includes('ROLE_ADMIN')) {
+            alert('Access denied! Only instructors and admins can access this page.');
+            window.location.href = 'index.html';
+        }
+
+        // Load data on page load
+        window.addEventListener('load', () => {
+            loadCourses();
+        });
+
+        // Load courses
+        async function loadCourses() {
+            const instructorId = currentUser.instructorId;  
+
+            if (!instructorId) {
+                showAlert('Instructor profile not found', 'error');
+                return;
+            }
+            console.info("instructorId: "+instructorId);
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/api/courses/instructor/${instructorId}`,  
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    courses = await response.json();  
+                    console.info(courses.length);
+                    await loadAllPreferences();  
+                    renderCourses();  
+                } else if (response.status === 403) {
+                    showAlert('Access denied', 'error');
+                } else {
+                    showAlert('Failed to load courses', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';  
+            }
+        }
+
+
+        // Load all preferences
+        async function loadAllPreferences() {
+            const instructorId = currentUser.instructorProfileId;
+            if (!instructorId) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/instructor-preferences/instructor/${instructorId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const prefs = await response.json();
+                    preferences = {};
+                    prefs.forEach(pref => {
+                        preferences[pref.courseId] = pref.gradeWeights || {};
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load preferences:', error);
+            }
+        }
+
+        // Render courses
+        function renderCourses() {
+            const container = document.getElementById('coursesList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (courses.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            container.innerHTML = courses.map(course => {
+                const coursePrefs = preferences[course.id] || {};
+                const weightCount = Object.keys(coursePrefs).length;
+
+                return `
+                    <div class="course-card" id="course-${course.id}">
+                        <div class="course-header">
+                            <div>
+                                <div class="course-name">${course.name}</div>
+                                <div class="course-code">${course.code}</div>
+                            </div>
+                            <div>
+                                <span class="badge">${weightCount} weights</span>
+                            </div>
+                        </div>
+
+                        <div class="weights-container" id="weights-${course.id}">
+                            ${Object.entries(coursePrefs).map(([courseCode, weight]) => `
+                                <div class="weight-item">
+                                    <label>${courseCode}</label>
+                                    <div class="weight-input">
+                                        <input type="number" step="0.01" min="0" max="1" value="${weight}" 
+                                               onchange="updateWeight(${course.id}, '${courseCode}', this.value)">
+                                        <button class="remove-btn" onclick="removeWeight(${course.id}, '${courseCode}')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="add-weight-btn" onclick="openWeightModal(${course.id})">
+                            <i class="fas fa-plus"></i> Add Grade Weight
+                        </div>
+
+                        <div class="card-actions">
+                            <button class="btn btn-primary" onclick="savePreferences(${course.id})">
+                                <i class="fas fa-save"></i> Save Preferences
+                            </button>
+                            ${weightCount > 0 ? `
+                                <button class="btn btn-danger" onclick="deletePreferences(${course.id})">
+                                    <i class="fas fa-trash"></i> Clear All
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Open weight modal
+        function openWeightModal(courseId) {
+            currentCourseId = courseId;
+            document.getElementById('weightForm').reset();
+            document.getElementById('weightModal').classList.add('active');
+        }
+
+        // Close weight modal
+        function closeWeightModal() {
+            document.getElementById('weightModal').classList.remove('active');
+            currentCourseId = null;
+        }
+
+        // Add weight form submission
+        document.getElementById('weightForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const courseCode = document.getElementById('weightCourseCode').value.trim();
+            const weight = parseFloat(document.getElementById('weightValue').value);
+
+            if (!preferences[currentCourseId]) {
+                preferences[currentCourseId] = {};
+            }
+
+            preferences[currentCourseId][courseCode] = weight;
+            renderCourses();
+            closeWeightModal();
+            showAlert('Weight added! Don\'t forget to save.', 'success');
+        });
+
+        // Update weight
+        function updateWeight(courseId, courseCode, value) {
+            const weight = parseFloat(value);
+            if (isNaN(weight) || weight < 0 || weight > 1) {
+                showAlert('Weight must be between 0 and 1', 'error');
+                return;
+            }
+
+            if (!preferences[courseId]) {
+                preferences[courseId] = {};
+            }
+
+            preferences[courseId][courseCode] = weight;
+            showAlert('Weight updated! Don\'t forget to save.', 'success');
+        }
+
+        // Remove weight
+        function removeWeight(courseId, courseCode) {
+            if (!confirm(`Remove weight for ${courseCode}?`)) return;
+
+            if (preferences[courseId]) {
+                delete preferences[courseId][courseCode];
+                if (Object.keys(preferences[courseId]).length === 0) {
+                    delete preferences[courseId];
+                }
+            }
+
+            renderCourses();
+            showAlert('Weight removed! Don\'t forget to save.', 'success');
+        }
+
+        // Save preferences
+        async function savePreferences(courseId) {
+            const instructorId = currentUser.instructorProfileId;
+            if (!instructorId) {
+                showAlert('Instructor profile not found', 'error');
+                return;
+            }
+
+            const gradeWeights = preferences[courseId] || {};
+
+            if (Object.keys(gradeWeights).length === 0) {
+                showAlert('Add at least one grade weight', 'error');
+                return;
+            }
+
+            const requestData = {
+                instructorId: instructorId,
+                courseId: courseId,
+                gradeWeights: gradeWeights
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/instructor-preferences`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (response.ok) {
+                    showAlert('Preferences saved successfully!', 'success');
+                } else {
+                    const error = await response.text();
+                    showAlert(error || 'Failed to save preferences', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        }
+
+        // Delete preferences
+        async function deletePreferences(courseId) {
+            if (!confirm('Are you sure you want to clear all preferences for this course?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/instructor-preferences/course/${courseId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    delete preferences[courseId];
+                    renderCourses();
+                    showAlert('Preferences deleted successfully', 'success');
+                } else {
+                    showAlert('Failed to delete preferences', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error!', 'error');
+            }
+        }
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Close modal on outside click
+        document.getElementById('weightModal').addEventListener('click', (e) => {
+            if (e.target.id === 'weightModal') {
+                closeWeightModal();
+            }
+        });
+    </script>
+</body>
+</html>

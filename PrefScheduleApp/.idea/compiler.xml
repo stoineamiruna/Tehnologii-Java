@@ -8,20 +8,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="PrefSchedule" />
+        <module name="CourseEnricher" />
+        <module name="QuickGrade" />
         <module name="api-gateway" />
         <module name="StableMatch" />
         <module name="eureka-server" />
-      </profile>
-      <profile name="Annotation profile for QuickGrade" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-        </processorPath>
-        <module name="QuickGrade" />
         <module name="Enricher" />
-        <module name="CourseEnricher" />
       </profile>
     </annotationProcessing>
   </component>

@@ -1,23 +1,21 @@
 package com.example.prefschedule.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
 public class StudentRequestDTO {
-    @NotBlank(message = "Student code cannot be blank — please provide a valid code.")
+    @NotBlank(message = "Code is required")
     private String code;
 
-    @NotBlank(message = "Student name cannot be blank — please provide the student's full name.")
+    @NotBlank(message = "Name is required")
     private String name;
 
-    @Email(message = "Please provide a valid email address (e.g., student@example.com).")
+    @Email(message = "Email should be valid")
     private String email;
 
-    @NotNull(message = "Year of study must not be null — please specify a valid number.")
-    @Min(value = 1, message = "Year of study must be at least 1.")
+    @NotNull(message = "Year is required")
+    @Min(value = 1, message = "Year must be at least 1")
+    @Max(value = 6, message = "Year must be at most 6")
     private Integer year;
 }

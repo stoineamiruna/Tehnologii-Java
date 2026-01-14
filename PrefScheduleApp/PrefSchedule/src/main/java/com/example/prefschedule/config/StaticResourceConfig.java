@@ -6,6 +6,7 @@ import org.springframework.web.servlet.config.annotation.*;
 @Configuration
 public class StaticResourceConfig implements WebMvcConfigurer {
 
+    /*
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry
@@ -13,5 +14,5 @@ public class StaticResourceConfig implements WebMvcConfigurer {
                 .addResourceLocations(
                         "file:C:/Users/Miru/Desktop/Tehnologii Java/PrefScheduleApp/frontend/"
                 );
-    }
+    }*/
 }
