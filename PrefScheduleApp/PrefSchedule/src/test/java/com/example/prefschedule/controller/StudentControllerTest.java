@@ -28,12 +28,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import com.example.prefschedule.exception.GlobalExceptionHandler;
-/**
- * Unit tests for StudentController.
- * Uses @WebMvcTest to test only the web layer.
- * Uses @MockBean to mock service dependencies.
- * Security is disabled for testing purposes.
- */
+
 @WebMvcTest(controllers = StudentController.class,
         excludeAutoConfiguration = {
                 org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class

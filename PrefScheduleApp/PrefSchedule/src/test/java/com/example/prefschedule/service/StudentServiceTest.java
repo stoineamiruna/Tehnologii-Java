@@ -21,10 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for StudentService.
- * Uses Mockito to mock the StudentRepository dependency.
- */
 @ExtendWith(MockitoExtension.class)
 class StudentServiceTest {
 
@@ -62,18 +58,16 @@ class StudentServiceTest {
 
         List<Student> mockStudents = Arrays.asList(testStudent, student2);
 
-        // Mockăm comportamentul repository-ului
         when(studentRepository.findAll()).thenReturn(mockStudents);
 
-        // When - Apelăm metoda de testat
+        // When
         List<Student> result = studentService.getAll();
 
-        // Then - Verificăm rezultatele
+        // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
         assertThat(result).containsExactly(testStudent, student2);
 
-        // Verificăm că repository-ul a fost apelat exact o dată
         verify(studentRepository, times(1)).findAll();
     }
 
