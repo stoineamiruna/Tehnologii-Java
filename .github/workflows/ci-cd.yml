@@ -8,9 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ==========================================
-  # BUILD & TEST
-  # ==========================================
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
@@ -43,47 +40,39 @@ jobs:
 
       - name: 🧪 Run Unit Tests - StudentService
         run: |
-          cd PrefSchedule
+          cd PrefScheduleApp/PrefSchedule
           mvn test -Dtest=StudentServiceTest
-        continue-on-error: false
 
       - name: 🧪 Run Unit Tests - StudentController
         run: |
-          cd PrefSchedule
+          cd PrefScheduleApp/PrefSchedule
           mvn test -Dtest=StudentControllerTest
-        continue-on-error: false
 
       - name: 🔬 Run Integration Tests
         run: |
-          cd PrefSchedule
+          cd PrefScheduleApp/PrefSchedule
           mvn test -Dtest=StudentIntegrationTestDockerCompose
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/prefschedule_test
-        continue-on-error: false
 
       - name: 📦 Build Application JAR
         run: |
-          cd PrefSchedule
+          cd PrefScheduleApp/PrefSchedule
           mvn clean package -DskipTests
 
       - name: 📊 Publish Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ github.run_number }}
-          path: PrefSchedule/target/surefire-reports/
-          retention-days: 30
+          name: test-results
+          path: PrefScheduleApp/PrefSchedule/target/surefire-reports/
 
-      - name: 📦 Upload JAR Artifact
+      - name: 📦 Upload JAR
         uses: actions/upload-artifact@v4
         with:
-          name: prefschedule-jar-${{ github.run_number }}
-          path: PrefSchedule/target/*.jar
-          retention-days: 7
+          name: prefschedule-jar
+          path: PrefScheduleApp/PrefSchedule/target/*.jar
 
-  # ==========================================
-  # DOCKER BUILD
-  # ==========================================
   docker-build:
     name: Build Docker Image
     needs: build-and-test
@@ -100,16 +89,9 @@ jobs:
       - name: 🏗️ Build Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: ./PrefSchedule
-          file: ./PrefSchedule/Dockerfile
+          context: ./PrefScheduleApp/PrefSchedule
+          file: ./PrefScheduleApp/PrefSchedule/Dockerfile
           push: false
-          tags: |
-            prefschedule:latest
-            prefschedule:${{ github.sha }}
+          tags: prefschedule:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: ✅ Build Summary
-        run: |
-          echo "✅ Docker image built successfully!"
-          echo "📦 Image tags: prefschedule:latest, prefschedule:${{ github.sha }}"
