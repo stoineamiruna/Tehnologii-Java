@@ -1285,20 +1285,3 @@ jobs:
     steps:
       - run: kubectl set image deployment/stablematch stablematch=prefschedule/stablematch:${{ github.sha }} -n prefschedule
 ```
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these guidelines:
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit changes**: `git commit -m 'Add amazing feature'`
-4. **Push to branch**: `git push origin feature/amazing-feature`
-5. **Open a Pull Request**
-
-### Code Standards
-
-- Follow Spring Boot best practices
-- Write unit tests for new features (>80% coverage)
-- Update documentation for API changes
-- Use conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`
