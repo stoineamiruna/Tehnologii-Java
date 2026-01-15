@@ -1,11 +1,13 @@
 package com.example.prefschedule.integration;
 
+import com.example.prefschedule.config.TestSecurityConfig;
 import com.example.prefschedule.entity.Student;
 import com.example.prefschedule.repository.StudentRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -19,19 +21,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration tests using Testcontainers.
- * Verifies that:
- * 1. DB schema is created automatically
- * 2. CRUD operations work correctly with real database
+ * Tests DB schema creation and CRUD operations for Student entity.
  */
 @SpringBootTest
 @Testcontainers
+@Import(TestSecurityConfig.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@WithMockUser(username = "admin", roles = {"ADMIN"}) // Admin pentru toate testele
 class StudentIntegrationTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
             .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
+            .withUsername("testuser")
+            .withPassword("testpass");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -39,136 +42,164 @@ class StudentIntegrationTest {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("eureka.client.enabled", () -> "false");
+        registry.add("spring.kafka.enabled", () -> "false");
     }
 
     @Autowired
     private StudentRepository studentRepository;
 
-    @Test
-    @DisplayName("Integration Test: DB Schema should be created automatically")
-    void testDatabaseSchemaCreation() {
-        // Given - Container-ul PostgreSQL rulează
-        assertThat(postgres.isRunning()).isTrue();
-
-        // When - Repository-ul este injectat
-        assertThat(studentRepository).isNotNull();
-
-        // Then - Putem executa operații pe DB (schema există)
-        long count = studentRepository.count();
-        assertThat(count).isEqualTo(0); // DB-ul este gol la început
+    @BeforeEach
+    void setUp() {
+        studentRepository.deleteAll();
     }
 
     @Test
-    @DisplayName("Integration Test: CREATE - Should save student to database")
+    @Order(1)
+    @DisplayName("Testcontainers: Verify PostgreSQL container is running")
+    void testPostgresContainerIsRunning() {
+        assertThat(postgres.isRunning()).isTrue();
+        assertThat(postgres.getDatabaseName()).isEqualTo("testdb");
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Testcontainers: Verify DB schema is created automatically")
+    void testDatabaseSchemaCreated() {
+        List<Student> students = studentRepository.findAll();
+        assertThat(students).isNotNull();
+        assertThat(students).isEmpty();
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("CRUD: Create student")
     void testCreateStudent() {
-        // Given
         Student student = new Student();
         student.setCode("STU001");
         student.setName("Ion Popescu");
-        student.setEmail("ion.popescu@student.ro");
+        student.setEmail("ion.popescu@test.ro");
         student.setYear(3);
 
-        // When
-        Student savedStudent = studentRepository.save(student);
+        Student saved = studentRepository.save(student);
 
-        // Then
-        assertThat(savedStudent.getId()).isNotNull();
-        assertThat(savedStudent.getCode()).isEqualTo("STU001");
-        assertThat(savedStudent.getName()).isEqualTo("Ion Popescu");
-        assertThat(savedStudent.getEmail()).isEqualTo("ion.popescu@student.ro");
-        assertThat(savedStudent.getYear()).isEqualTo(3);
+        assertThat(saved).isNotNull();
+        assertThat(saved.getId()).isNotNull();
+        assertThat(saved.getCode()).isEqualTo("STU001");
+        assertThat(saved.getName()).isEqualTo("Ion Popescu");
+        assertThat(saved.getEmail()).isEqualTo("ion.popescu@test.ro");
+        assertThat(saved.getYear()).isEqualTo(3);
     }
 
     @Test
-    @DisplayName("Integration Test: READ - Should retrieve student from database")
+    @Order(4)
+    @DisplayName("CRUD: Read student by ID")
     void testReadStudent() {
-        // Given - Salvăm un student
         Student student = new Student();
         student.setCode("STU002");
         student.setName("Maria Ionescu");
-        student.setEmail("maria@student.ro");
+        student.setEmail("maria@test.ro");
         student.setYear(2);
-        Student savedStudent = studentRepository.save(student);
+        Student saved = studentRepository.save(student);
 
-        // When - Citim studentul după ID
-        Optional<Student> retrievedStudent = studentRepository.findById(savedStudent.getId());
+        Optional<Student> found = studentRepository.findById(saved.getId());
 
-        // Then
-        assertThat(retrievedStudent).isPresent();
-        assertThat(retrievedStudent.get().getCode()).isEqualTo("STU002");
-        assertThat(retrievedStudent.get().getName()).isEqualTo("Maria Ionescu");
+        assertThat(found).isPresent();
+        assertThat(found.get().getCode()).isEqualTo("STU002");
+        assertThat(found.get().getName()).isEqualTo("Maria Ionescu");
     }
 
     @Test
-    @DisplayName("Integration Test: UPDATE - Should update student in database")
+    @Order(5)
+    @DisplayName("CRUD: Update student")
     void testUpdateStudent() {
-        // Given - Salvăm un student
         Student student = new Student();
         student.setCode("STU003");
-        student.setName("Andrei Georgescu");
-        student.setEmail("andrei@student.ro");
+        student.setName("Andrei Pop");
+        student.setEmail("andrei@test.ro");
         student.setYear(1);
-        Student savedStudent = studentRepository.save(student);
+        Student saved = studentRepository.save(student);
 
-        // When - Actualizăm datele
-        savedStudent.setName("Andrei Georgescu Updated");
-        savedStudent.setYear(2);
-        studentRepository.save(savedStudent);
+        saved.setName("Andrei Pop Updated");
+        saved.setEmail("andrei.updated@test.ro");
+        saved.setYear(2);
+        Student updated = studentRepository.save(saved);
 
-        // Then - Verificăm că modificările au fost salvate
-        Optional<Student> updatedStudent = studentRepository.findById(savedStudent.getId());
-        assertThat(updatedStudent).isPresent();
-        assertThat(updatedStudent.get().getName()).isEqualTo("Andrei Georgescu Updated");
-        assertThat(updatedStudent.get().getYear()).isEqualTo(2);
+        assertThat(updated.getId()).isEqualTo(saved.getId());
+        assertThat(updated.getName()).isEqualTo("Andrei Pop Updated");
+        assertThat(updated.getEmail()).isEqualTo("andrei.updated@test.ro");
+        assertThat(updated.getYear()).isEqualTo(2);
     }
 
     @Test
-    @DisplayName("Integration Test: DELETE - Should delete student from database")
+    @Order(6)
+    @DisplayName("CRUD: Delete student")
     void testDeleteStudent() {
-        // Given - Salvăm un student
         Student student = new Student();
         student.setCode("STU004");
-        student.setName("Elena Vasilescu");
-        student.setEmail("elena@student.ro");
+        student.setName("Elena Radu");
+        student.setEmail("elena@test.ro");
         student.setYear(4);
-        Student savedStudent = studentRepository.save(student);
-        Long studentId = savedStudent.getId();
+        Student saved = studentRepository.save(student);
+        Long studentId = saved.getId();
 
-        // When - Ștergem studentul
         studentRepository.deleteById(studentId);
 
-        // Then - Verificăm că studentul nu mai există
-        Optional<Student> deletedStudent = studentRepository.findById(studentId);
-        assertThat(deletedStudent).isEmpty();
+        Optional<Student> deleted = studentRepository.findById(studentId);
+        assertThat(deleted).isEmpty();
     }
 
     @Test
-    @DisplayName("Integration Test: LIST - Should retrieve all students")
-    void testListAllStudents() {
-        // Given - Ștergem datele existente și adăugăm studenți noi
-        studentRepository.deleteAll();
+    @Order(7)
+    @DisplayName("CRUD: Find all students")
+    void testFindAllStudents() {
+        Student student1 = new Student("STU005", "John Doe", "john@test.ro", 1);
+        Student student2 = new Student("STU006", "Jane Doe", "jane@test.ro", 2);
+        Student student3 = new Student("STU007", "Bob Smith", "bob@test.ro", 3);
 
-        Student student1 = new Student();
-        student1.setCode("STU005");
-        student1.setName("Student 1");
-        student1.setEmail("student1@student.ro");
-        student1.setYear(1);
+        studentRepository.saveAll(List.of(student1, student2, student3));
 
-        Student student2 = new Student();
-        student2.setCode("STU006");
-        student2.setName("Student 2");
-        student2.setEmail("student2@student.ro");
-        student2.setYear(2);
-
-        studentRepository.save(student1);
-        studentRepository.save(student2);
-
-        // When
         List<Student> allStudents = studentRepository.findAll();
 
-        // Then
-        assertThat(allStudents).hasSize(2);
+        assertThat(allStudents).hasSize(3);
         assertThat(allStudents).extracting(Student::getCode)
-                .containsExactlyInAnyOrder("STU005", "STU006");
+                .containsExactlyInAnyOrder("STU005", "STU006", "STU007");
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("CRUD: Find students by year")
+    void testFindStudentsByYear() {
+        Student student1 = new Student("STU008", "Alice", "alice@test.ro", 2);
+        Student student2 = new Student("STU009", "Charlie", "charlie@test.ro", 2);
+        Student student3 = new Student("STU010", "David", "david@test.ro", 3);
+
+        studentRepository.saveAll(List.of(student1, student2, student3));
+
+        List<Student> year2Students = studentRepository.findByYear(2);
+
+        assertThat(year2Students).hasSize(2);
+        assertThat(year2Students).extracting(Student::getName)
+                .containsExactlyInAnyOrder("Alice", "Charlie");
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("CRUD: Test unique constraint on code")
+    void testUniqueCodeConstraint() {
+        Student student1 = new Student("UNIQUE001", "First Student", "first@test.ro", 1);
+        studentRepository.save(student1);
+
+        Student student2 = new Student("UNIQUE001", "Second Student", "second@test.ro", 2);
+
+        Assertions.assertThrows(Exception.class, () -> {
+            studentRepository.save(student2);
+            studentRepository.flush();
+        });
+    }
+
+    @AfterAll
+    static void tearDown() {
+        postgres.stop();
     }
 }
